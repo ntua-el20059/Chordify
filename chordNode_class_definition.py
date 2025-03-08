@@ -121,7 +121,7 @@ class ChordNode:
                 elif request['type'] == 'departure':
                     self.handle_departure_request(request)
                 elif request['type'] == 'departure_announcement':
-                    if self.bootstrap_node["node_id"] == self.successor["node_id"]:
+                    if self.bootstrap_node["node_id"] == self.node_id:
                         (f"🟡 Node {request['sender_ip']}:{request['sender_port']} is departing.")
         except Exception as e:
             print(f"❌ Error handling request: {e}")
@@ -136,13 +136,10 @@ class ChordNode:
             "sender_ip": self.ip,
             "sender_port": self.port,
             "sender_id": self.node_id,
-            "msg": "Hello from the Chord node!"
+            "msg": "Einai o pappous ekei?"
         }
-        # Send response back to the sender
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect((request['sender_ip'], request['sender_port']))
-            sock.send(json.dumps(response).encode())
-
+        self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_port'])# Send response back to the sender
+        
     def handle_join_request(self, request):
         """Handle a join request."""
         print(f"🟡 Node {request['sender_ip']}:{request['sender_port']} is joining the network.")
@@ -182,9 +179,7 @@ class ChordNode:
                 "successor_id": self.node_id
             }
             # Send response back to the new node
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect((request['sender_ip'], request['sender_temp_port']))
-                sock.send(json.dumps(response).encode())
+            self.pass_request(response, target_ip=request['sender_ip'], target_port= request['sender_temp_port'])
     
     def handle_departure_request(self, request):
         """Handle a departure request."""
@@ -198,11 +193,39 @@ class ChordNode:
             self.predecessor = {"ip": request["predecessor_ip"], "port": request["predecessor_port"], "node_id": request["predecessor_id"]}
             print(f"🟢 Predecessor updated to {self.predecessor}")
 
+    def greet(self, target_ip, target_port):
+        if target_port == None and target_ip == None:
+            target_ip = self.bootstrap_node["ip"]
+            target_port = self.bootstrap_node["port"]
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+                temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+                temp_port = temp_socket.getsockname()[1]
+                temp_socket.listen(1)
+                print(f"🔍 Listening for response on temporary port {temp_port}")
+
+                request = {
+                    "type": "greet",
+                    "sender_ip": self.ip,
+                    "sender_port": temp_port,
+                    "sender_id": self.node_id,
+                    "target_id": self.hash_function(f"{target_ip}:{target_port}")
+                }
+                self.pass_request(request=request, target_ip=target_ip, target_port=target_port)
+
+                # Wait for the response on the temporary socket
+                print("🕒 Waiting for response...")
+                conn, addr = temp_socket.accept()
+                data = conn.recv(1024).decode()
+                if data:
+                    response = json.loads(data)
+                    print(f"📨 Received response: {response["msg"]}")
+                conn.close()
+
     def join(self):
         """Join an existing Chord network using the bootstrap node."""
         print(f"🟡 Joining network via bootstrap node {self.bootstrap_node}")
-        target_ip = self.bootstrap_node["ip"]
-        target_port = self.bootstrap_node["port"]
 
         # Create a temporary socket to listen for the response
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
@@ -222,11 +245,11 @@ class ChordNode:
             }
 
             # Send the join request to the bootstrap node
-            self.pass_request(request=request, target_ip=target_ip, target_port=target_port)
+            self.pass_request(request=request, target_ip=self.bootstrap_node["ip"], target_port=self.bootstrap_node["port"])
 
             # Wait for the response on the temporary socket
             print("🕒 Waiting for response...")
-            conn, addr = temp_socket.accept()
+            conn, _ = temp_socket.accept()
             data = conn.recv(1024).decode()
             if data:
                 response = json.loads(data)
@@ -290,30 +313,7 @@ def cli(node):
             target_ip = input("Enter target IP: ") or "127.0.0.1"
             target_port = int(input("Enter target port: ") or "5000")
             # Create a temporary socket to listen for the response
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
-                temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
-                temp_port = temp_socket.getsockname()[1]
-                temp_socket.listen(1)
-                print(f"🔍 Listening for response on temporary port {temp_port}")
-
-                request = {
-                    "type": "greet",
-                    "sender_ip": node.ip,
-                    "sender_port": temp_port,
-                    "sender_id": node.node_id,
-                    "target_id": node.hash_function(f"{target_ip}:{target_port}")
-                }
-                node.pass_request(request=request, target_ip=target_ip, target_port=target_port)
-
-                # Wait for the response on the temporary socket
-                print("🕒 Waiting for response...")
-                conn, addr = temp_socket.accept()
-                data = conn.recv(1024).decode()
-                if data:
-                    response = json.loads(data)
-                    print(f"📨 Received response: {response}")
-                conn.close()
+            node.greet(target_ip=target_ip, target_port=target_port)
         elif choice == "status":
             print(node.get_bootstrap())
             print(f"ℹ️ Self: {node.port}")
