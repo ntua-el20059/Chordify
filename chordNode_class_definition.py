@@ -26,9 +26,10 @@ class ChordNode:
             # If this is the first node, it is its own successor and predecessor
             self.successor = {"ip": self.ip, "port": self.port, "node_id": self.node_id}
             self.predecessor = {"ip": self.ip, "port": self.port, "node_id": self.node_id}
+            self.bootstrap_node = {"ip": self.ip, "port": self.port, "node_id": self.node_id}
             print(f"🟢 Bootstrap node started at {self.ip}:{self.port}, ID: {self.node_id}")
         else:
-            self.join_network()
+            self.join()
 
     def get_free_port(self, port):
         """Assign a free port. If a specific port is provided, check if it's free."""
@@ -62,6 +63,10 @@ class ChordNode:
     def get_predecessor(self):
         """Get the predecessor of this node."""
         return self.predecessor["ip"], self.predecessor["port"]
+    
+    def get_bootstrap(self):
+        """Fetch the information of the bootstrap node"""
+        return self.bootstrap_node
 
     def hash_function(self, key):
         """Hash a key using SHA-1 and return a 160-bit integer."""
@@ -113,6 +118,11 @@ class ChordNode:
                     self.handle_greet_request(request)
                 elif request['type'] == 'join':
                     self.handle_join_request(request)
+                elif request['type'] == 'departure':
+                    self.handle_departure_request(request)
+                elif request['type'] == 'departure_announcement':
+                    if self.bootstrap_node["node_id"] == self.successor["node_id"]:
+                        (f"🟡 Node {request['sender_ip']}:{request['sender_port']} is departing.")
         except Exception as e:
             print(f"❌ Error handling request: {e}")
         finally:
@@ -175,8 +185,20 @@ class ChordNode:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect((request['sender_ip'], request['sender_temp_port']))
                 sock.send(json.dumps(response).encode())
+    
+    def handle_departure_request(self, request):
+        """Handle a departure request."""
+        print(f"👋 Node {request['sender_id']} is departing. Updating successor and predecessor.")
+        if self.successor["node_id"] == request["sender_id"]:
+            self.successor = {"ip": request["successor_ip"], "port": request["successor_port"], "node_id": request["successor_id"]}
+            #announce the departure to the successor
+            #say that the successor of the node departed
+            print(f"🟢 Successor updated to {self.successor}")
+        if self.predecessor["node_id"] == request["sender_id"]:
+            self.predecessor = {"ip": request["predecessor_ip"], "port": request["predecessor_port"], "node_id": request["predecessor_id"]}
+            print(f"🟢 Predecessor updated to {self.predecessor}")
 
-    def join_network(self):
+    def join(self):
         """Join an existing Chord network using the bootstrap node."""
         print(f"🟡 Joining network via bootstrap node {self.bootstrap_node}")
         target_ip = self.bootstrap_node["ip"]
@@ -221,6 +243,29 @@ class ChordNode:
                 }
                 print(f"🟢 Successfully joined network. Successor: {self.successor}, Predecessor: {self.predecessor}")
             conn.close()
+
+    def depart(self):
+        """Depart from the Chord network gracefully."""
+        if self.successor["node_id"] != self.node_id:
+            # Notify the successor to update its predecessor
+            request = {
+                "type": "departure",
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_id": self.node_id,
+                "successor_ip": self.successor["ip"],
+                "successor_port": self.successor["port"],
+                "successor_id": self.successor["node_id"],
+                "predecessor_ip": self.predecessor["ip"],
+                "predecessor_port": self.predecessor["port"],
+                "predecessor_id": self.predecessor["node_id"]
+            }
+            self.pass_request(request)
+            self.pass_request(request=request,target_ip=self.predecessor["ip"],target_port=self.predecessor["port"])
+            request["type"] = "departure_announcement"
+            self.pass_request(request, self.bootstrap_node["ip"], self.bootstrap_node["port"])
+
+        self.stop()
 
     def stop(self):
         """Stop the server and clean up resources."""
@@ -270,12 +315,13 @@ def cli(node):
                     print(f"📨 Received response: {response}")
                 conn.close()
         elif choice == "status":
-            print(f"ℹ️ IP: {node.port}")
+            print(node.get_bootstrap())
+            print(f"ℹ️ Self: {node.port}")
             print(f"ℹ️ Successor: {node.successor["port"]}")
             print(f"ℹ️ Predecessor: {node.predecessor["port"]}")
         elif choice == "exit":
             print("👋 Departing.")
-            node.stop()
+            node.depart()
             break
         else:
             print("❌ Invalid option, please try again.")
