@@ -1,7 +1,7 @@
 import argparse
 import threading
 import sys
-from chord_node_core import ChordNode  # Import the ChordNode class
+from chord_node import ChordNode  # Import the ChordNode class
 
 def cli(node):
     """Command Line Interface for sending requests."""
@@ -52,7 +52,6 @@ def main():
         bootstrap_node = {
             "ip": args.ip,
             "port": args.port,
-            "node_id": int(hashlib.sha1(f"{args.ip}:{args.port}".encode()).hexdigest(), 16) % (2**160)
         }
         node = ChordNode(port=args.port, bootstrap_node=bootstrap_node)
         print(f"🚀 Node started at {node.ip}:{node.port}, ID: {node.node_id}")
