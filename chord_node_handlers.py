@@ -1,7 +1,7 @@
 import json
-from chord_node_core import ChordNode  # Import the ChordNode class
+from chord_node_core import ChordNodeCore  # Import the ChordNode class
 
-class ChordNodeHandlers(ChordNode):
+class ChordNodeHandlers(ChordNodeCore):
     def handle_request(self, conn):
         """Handle incoming requests from other nodes."""
         try:
