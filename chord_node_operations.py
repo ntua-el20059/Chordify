@@ -1,8 +1,8 @@
 import socket
 import json
-from chord_node_core import ChordNode  # Import the ChordNode class
+from chord_node_handlers import ChordNodeHandlers  # Import the ChordNode class
 
-class ChordNodeOperations(ChordNode):
+class ChordNodeOperations(ChordNodeHandlers):
     def greet(self, target_ip, target_port):
         if target_port == None and target_ip == None:
             target_ip = self.bootstrap_node["ip"]
