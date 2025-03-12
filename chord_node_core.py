@@ -5,7 +5,7 @@ import json
 
 
 class ChordNodeCore:
-    def __init__(self, port=None, bootstrap_node=None):
+    def __init__(self, port=None, bootstrap_node=None, replication_factor=1):
         try:
             self.ip = socket.gethostbyname(socket.gethostname())
         except Exception as e:
@@ -13,6 +13,7 @@ class ChordNodeCore:
             self.ip = "127.0.0.1"
         self.port = self.get_free_port(port)  # Assign a free port
         self.node_id = self.hash_function(f"{self.ip}:{self.port}")
+        self.replication_factor = replication_factor
         self.data_store = {}  # Local DHT storage (key = song name, value = IP of node)
         self.successor = None
         self.predecessor = None

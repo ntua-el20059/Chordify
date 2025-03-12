@@ -90,3 +90,31 @@ class ChordNodeHandlers(ChordNodeCore):
         if self.predecessor["node_id"] == request["sender_id"]:
             self.predecessor = {"ip": request["predecessor_ip"], "port": request["predecessor_port"], "node_id": request["predecessor_id"]}
             print(f"🟢 Predecessor updated to {self.predecessor}")
+    
+    def handle_insertion_request(self, request):
+        """Handle an insertion request."""
+        key_hash = self.hash_function(request['key'])
+        if self.node_id < key_hash < self.successor["node_id"] or 0<request['times_copied']<self.replication_factor:
+            # Key belongs to this node
+            print(f"🟢 Key {request['key']} inserted successfully.")
+            self.data_store[request['key']] = request['value']
+            request['times_copied']+=1
+            if request['times_copied']<self.replication_factor:
+                self.pass_request(request)
+        else:
+            # Forward the request to the successor
+            self.pass_request(request)
+
+    def handle_query_request(self, request):
+        """Handle a query request."""
+        key_hash = self.hash_function(request['key'])
+        if self.node_id < key_hash < self.successor["node_id"]:
+            response = {
+                "type": "query_response",
+                "key": request['key'],
+                "value": self.data_store[request['key']]
+            }
+            self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
+        else:
+            # Forward the request to the successor
+            self.pass_request(request)

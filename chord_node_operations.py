@@ -99,6 +99,47 @@ class ChordNodeOperations(ChordNodeHandlers):
             self.pass_request(request, self.bootstrap_node["ip"], self.bootstrap_node["port"])
 
         self.stop()
+    
+    def insert(self, key):
+        """Insert a key into the Chord network."""
+        key_hash = self.hash_function(key)
+        print(f"🔑 Inserting key {key} with hash {key_hash}")
+        request = {
+                "type": "insert",
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_id": self.node_id,
+                "times_copied": 0,
+                "key": key
+            }
+        self.pass_request(request, self.ip, self.port)
+
+    def query(self, key):
+        """Query for a key in the Chord network."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+            temp_port = temp_socket.getsockname()[1]
+            temp_socket.listen(1)
+            key_hash = self.hash_function(key)
+            print(f"🔍 Querying for key {key} with hash {key_hash}")
+            request = {
+                "type": "query",
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_temp_port": temp_port,
+                "sender_id": self.node_id,
+                "found": None
+            }
+            self.pass_request(request,self.ip,self.port)
+            print("🕒 Waiting for response...")
+            conn, _ = temp_socket.accept()
+            data = conn.recv(1024).decode()
+            if data:
+                response = json.loads(data)
+                print(f"📨 Song with key {key} was { "not" if response["found"]==False else " "}found")
+            conn.close()
+            
 
     def stop(self):
         """Stop the server and clean up resources."""

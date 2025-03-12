@@ -21,7 +21,7 @@ def cli(node):
             node.greet(target_ip=target_ip, target_port=target_port)
         elif choice == "status":
             print(node.get_bootstrap())
-            print(f"ℹ️ Self: {node.node_id//2**157}")
+            print(f"ℹ️ Self: {node.node_id//2**156}")
             print(f"ℹ️ Successor: {node.successor['node_id']//2**158}")
             print(f"ℹ️ Predecessor: {node.predecessor['node_id']//2**158}")
         elif choice == "exit":
