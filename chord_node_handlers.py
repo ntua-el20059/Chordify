@@ -94,10 +94,14 @@ class ChordNodeHandlers(ChordNodeCore):
     def handle_insertion_request(self, request):
         """Handle an insertion request."""
         key_hash = self.hash_function(request['key'])
-        if self.node_id < key_hash < self.successor["node_id"] or 0<request['times_copied']<self.replication_factor:
+        if (self.successor["node_id"] == self.node_id or  # Bootstrap node case
+        self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
+        (self.successor["node_id"] < self.node_id and  # Wrap-around case
+        (request['key'] > self.node_id or request['key'] < self.successor["node_id"])) or
+        0<request['times_copied']<self.replication_factor):
             # Key belongs to this node
             print(f"🟢 Key {request['key']} inserted successfully.")
-            self.data_store[request['key']] = request['value']
+            #self.data_store[request['key']] = request['value']
             request['times_copied']+=1
             if request['times_copied']<self.replication_factor:
                 self.pass_request(request)
@@ -108,11 +112,14 @@ class ChordNodeHandlers(ChordNodeCore):
     def handle_query_request(self, request):
         """Handle a query request."""
         key_hash = self.hash_function(request['key'])
-        if self.node_id < key_hash < self.successor["node_id"]:
+        if (self.successor["node_id"] == self.node_id or  # Bootstrap node case
+            self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
+            (self.successor["node_id"] < self.node_id and  # Wrap-around case
+            (request['key'] > self.node_id or request['key'] < self.successor["node_id"]))):
             response = {
                 "type": "query_response",
                 "key": request['key'],
-                "value": self.data_store[request['key']]
+                "found": False#self.data_store[request['key']]
             }
             self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
         else:
