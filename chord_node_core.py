@@ -3,7 +3,8 @@ import socket
 import threading
 import json
 
-class ChordNode:
+
+class ChordNodeCore:
     def __init__(self, port=None, bootstrap_node=None):
         try:
             self.ip = socket.gethostbyname(socket.gethostname())
@@ -15,6 +16,8 @@ class ChordNode:
         self.data_store = {}  # Local DHT storage (key = song name, value = IP of node)
         self.successor = None
         self.predecessor = None
+        if bootstrap_node!=None:
+            bootstrap_node["node_id"] = self.hash_function(f"{bootstrap_node['ip']}:{bootstrap_node['port']}")
         self.bootstrap_node = bootstrap_node  # Dictionary containing bootstrap node details
         self.running = True  # Flag to control the server loop
         self.server_socket = None  # Store the server socket for cleanup
@@ -100,3 +103,4 @@ class ChordNode:
                     print(f"📤 Sent request to {target_ip}:{target_port}")
         except Exception as e:
             print(f"❌ Failed to send request to {target_ip}:{target_port}: {e}")
+
