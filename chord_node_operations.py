@@ -121,10 +121,13 @@ class ChordNodeOperations(ChordNodeHandlers):
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
             temp_socket.listen(1)
+
+
             key_hash = self.hash_function(key)
             print(f"🔍 Querying for key {key} with hash {key_hash}")
             request = {
                 "type": "query",
+                "key": key_hash,
                 "sender_ip": self.ip,
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
