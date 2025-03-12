@@ -140,7 +140,7 @@ class ChordNodeOperations(ChordNodeHandlers):
             data = conn.recv(1024).decode()
             if data:
                 response = json.loads(data)
-                print(f"📨 Song with key {key} was { "not" if response["found"]==False else " "}found")
+                print(f"📨 Song \"{key}\" was { "not" if response["found"]==False else " "}found")
             conn.close()
             
 

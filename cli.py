@@ -21,14 +21,14 @@ def cli(node):
             node.greet(target_ip=target_ip, target_port=target_port)
         elif choice == "status":
             print(node.get_bootstrap())
-            print(f"ℹ️ Self: {node.node_id//2**156}")
-            print(f"ℹ️ Successor: {node.successor['node_id']//2**158}")
-            print(f"ℹ️ Predecessor: {node.predecessor['node_id']//2**158}")
+            print(f"ℹ️ Self: {node.node_id//2**155}")
+            print(f"ℹ️ Successor: {node.successor['node_id']//2**155}")
+            print(f"ℹ️ Predecessor: {node.predecessor['node_id']//2**155}")
         elif choice == "insert":
             key = input("Enter the key to insert: ")
             node.insert(key)
         elif choice == "query":
-            key = input("Enter the key to query: ")
+            key = f"{input("Enter the key to query: ")}"
             node.query(key)
         elif choice == "exit":
             print("👋 Departing.")

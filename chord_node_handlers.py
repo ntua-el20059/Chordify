@@ -18,9 +18,14 @@ class ChordNodeHandlers(ChordNodeCore):
                     self.handle_join_request(request)
                 elif request['type'] == 'departure':
                     self.handle_departure_request(request)
+                elif request['type'] == 'insert':
+                    self.handle_insertion_request(request)
+                elif request['type'] == 'query':
+                    self.handle_query_request(request)
                 elif request['type'] == 'departure_announcement':
                     if self.bootstrap_node["node_id"] == self.node_id:
                         (f"🟡 Node {request['sender_ip']}:{request['sender_port']} is departing.")
+
         except Exception as e:
             print(f"❌ Error handling request: {e}")
         finally:
@@ -111,7 +116,6 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_query_request(self, request):
         """Handle a query request."""
-        key_hash = self.hash_function(request['key'])
         if (self.successor["node_id"] == self.node_id or  # Bootstrap node case
             self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
             (self.successor["node_id"] < self.node_id and  # Wrap-around case
