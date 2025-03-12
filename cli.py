@@ -24,6 +24,12 @@ def cli(node):
             print(f"ℹ️ Self: {node.node_id//2**156}")
             print(f"ℹ️ Successor: {node.successor['node_id']//2**158}")
             print(f"ℹ️ Predecessor: {node.predecessor['node_id']//2**158}")
+        elif choice == "insert":
+            key = input("Enter the key to insert: ")
+            node.insert(key)
+        elif choice == "query":
+            key = input("Enter the key to query: ")
+            node.query(key)
         elif choice == "exit":
             print("👋 Departing.")
             node.depart()
