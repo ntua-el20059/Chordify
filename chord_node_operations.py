@@ -149,6 +149,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
                 "sender_id": self.node_id,
+                "times_copied": 0,
                 "found": None
             }
             self.pass_request(request,self.ip,self.port)
