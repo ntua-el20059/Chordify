@@ -87,7 +87,9 @@ class ChordNodeHandlers(ChordNodeCore):
                 "predecessor_id": request["predecessor_id"],
                 "successor_ip": self.ip,
                 "successor_port": self.port,
-                "successor_id": self.node_id
+                "successor_id": self.node_id,
+                "consistency_type": request["consistency_type"],
+                "replication_factor": request["replication_factor"]
             }
             # Send response back to the new node
             self.pass_request(response, target_ip=request['sender_ip'], target_port= request['sender_temp_port'])
