@@ -1,5 +1,7 @@
 import json
-from chord_node_core import ChordNodeCore  # Import the ChordNode class
+from chord_node_core import ChordNodeCore
+from pymongo import MongoClient
+
 
 class ChordNodeHandlers(ChordNodeCore):
     def handle_request(self, conn):
@@ -112,7 +114,7 @@ class ChordNodeHandlers(ChordNodeCore):
             request['times_copied']+=1
 
 
-            # EDW MPAINEI TO INSERTION STO MONGO
+            self.insert_into_mongo(request['key'], request['value'])
 
 
             if request['times_copied']==self.replication_factor and self.consistency_type=="linearizability":
@@ -134,6 +136,10 @@ class ChordNodeHandlers(ChordNodeCore):
         else:
             # Forward the request to the successor
             self.pass_request(request)
+    
+    def insert_into_mongo(self, key, value):
+        """Insert a key-value pair into the MongoDB collection."""
+        self.collection.insert_one({"key": key, "value": value})
 
     def handle_query_request(self, request):
         if self.consistency_type=="eventual":

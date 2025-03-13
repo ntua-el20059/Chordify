@@ -1,7 +1,8 @@
 import argparse
 import threading
+from pymongo import MongoClient
 import sys
-from chord_node import ChordNode  # Import the ChordNode class
+from chord_node import ChordNode
 
 def cli(node):
     """Command Line Interface for sending requests."""

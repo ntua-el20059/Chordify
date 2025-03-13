@@ -1,9 +1,9 @@
 from pymongo import MongoClient
 
 # Step 1: Connect to MongoDB
-client = MongoClient("mongodb://localhost:27017/")  # Replace with your MongoDB URI
-db = client["example_database"]  # Create or select a database
-collection = db["example_collection"]  # Create or select a collection
+client = MongoClient("mongodb://localhost:27017/")  
+db = client["database"]  
+collection = db["collection"]  
 
 # Step 2: Insert Key-Value Pairs
 key_value_pairs = [

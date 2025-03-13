@@ -1,6 +1,7 @@
 import socket
 import json
-from chord_node_handlers import ChordNodeHandlers  # Import the ChordNode class
+from chord_node_handlers import ChordNodeHandlers
+from pymongo import MongoClient
 
 class ChordNodeOperations(ChordNodeHandlers):
     def greet(self, target_ip, target_port):
@@ -74,6 +75,9 @@ class ChordNodeOperations(ChordNodeHandlers):
                     "port": response['predecessor_port'],
                     "node_id": response['predecessor_id']
                 }
+                self.mongoclient = MongoClient("mongodb://localhost:27017/")  
+                self.db = self.mongoclient["database"]  
+                self.collection = self.db["collection"]
                 print(f"🟢 Successfully joined network. Successor: {self.successor}, Predecessor: {self.predecessor}")
             conn.close()
 
@@ -165,6 +169,7 @@ class ChordNodeOperations(ChordNodeHandlers):
     def stop(self):
         """Stop the server and clean up resources."""
         self.running = False
+        self.mongoclient.close()
         if self.server_socket:
             self.server_socket.close()
         print("🛑 Stopping node...")
