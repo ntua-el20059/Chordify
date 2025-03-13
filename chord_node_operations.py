@@ -118,7 +118,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
                 "sender_id": self.node_id,
-                "found": None
+                "times_copied": 0
             }
             self.pass_request(request,self.ip,self.port)
             print("🕒 Waiting for response...")
