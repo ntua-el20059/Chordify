@@ -102,17 +102,34 @@ class ChordNodeOperations(ChordNodeHandlers):
     
     def insert(self, key):
         """Insert a key into the Chord network."""
-        key_hash = self.hash_function(key)
-        print(f"🔑 Inserting key {key} with hash {key_hash}")
-        request = {
-                "type": "insert",
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+            temp_port = temp_socket.getsockname()[1]
+            temp_socket.listen(1)
+
+
+            key_hash = self.hash_function(key)
+            print(f"🔍 Querying for key {key} with hash {key_hash}")
+            request = {
+                "type": "insertion",
+                "key": key_hash,
                 "sender_ip": self.ip,
                 "sender_port": self.port,
+                "sender_temp_port": temp_port,
                 "sender_id": self.node_id,
-                "times_copied": 0,
-                "key": key
+                "found": None
             }
-        self.pass_request(request, self.ip, self.port)
+            self.pass_request(request,self.ip,self.port)
+            print("🕒 Waiting for response...")
+            conn, _ = temp_socket.accept()
+            data = conn.recv(1024).decode()
+            if data:
+                response = json.loads(data)
+                if response:
+                    print(f"📨 Song was inserted successfully")
+            conn.close()
+            
 
     def query(self, key):
         """Query for a key in the Chord network."""

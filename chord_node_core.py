@@ -5,7 +5,7 @@ import json
 
 
 class ChordNodeCore:
-    def __init__(self, port=None, bootstrap_node=None, replication_factor=1):
+    def __init__(self, port=None, bootstrap_node=None, replication_factor=1, consistency_type="linearizability"):
         try:
             self.ip = socket.gethostbyname(socket.gethostname())
         except Exception as e:
@@ -25,6 +25,7 @@ class ChordNodeCore:
 
         if bootstrap_node is None:
             # If this is the first node, it is its own successor and predecessor
+            self.consistency_type = consistency_type 
             self.successor = {"ip": self.ip, "port": self.port, "node_id": self.node_id}
             self.predecessor = {"ip": self.ip, "port": self.port, "node_id": self.node_id}
             self.bootstrap_node = {"ip": self.ip, "port": self.port, "node_id": self.node_id}
