@@ -75,6 +75,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                     "port": response['predecessor_port'],
                     "node_id": response['predecessor_id']
                 }
+                self.consistency_type = response["consistency_type"]
                 print(f"🟢 Successfully joined network. Successor: {self.successor}, Predecessor: {self.predecessor}")
             conn.close()
 
