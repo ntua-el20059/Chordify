@@ -33,6 +33,9 @@ class ChordNodeCore:
             print(f"🟢 Bootstrap node started at {self.ip}:{self.port}, ID: {self.node_id}")
         else:
             self.join()
+        self.mongoclient = MongoClient("mongodb://localhost:27017/")  
+        self.db = self.mongoclient["database"]  
+        self.collection = self.db["collection"]
 
     def get_free_port(self, port):
         """Assign a free port. If a specific port is provided, check if it's free."""

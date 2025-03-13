@@ -75,9 +75,6 @@ class ChordNodeOperations(ChordNodeHandlers):
                     "port": response['predecessor_port'],
                     "node_id": response['predecessor_id']
                 }
-                self.mongoclient = MongoClient("mongodb://localhost:27017/")  
-                self.db = self.mongoclient["database"]  
-                self.collection = self.db["collection"]
                 print(f"🟢 Successfully joined network. Successor: {self.successor}, Predecessor: {self.predecessor}")
             conn.close()
 
