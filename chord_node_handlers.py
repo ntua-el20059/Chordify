@@ -157,7 +157,7 @@ class ChordNodeHandlers(ChordNodeCore):
             response = {
                 "type": "query_response",
                 "key": request['key'],
-                "found": False
+                "value": self.query_mongodb(request['key']) 
             }
             self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
         else:
@@ -172,16 +172,20 @@ class ChordNodeHandlers(ChordNodeCore):
             request['times_copied']+=1
             if request['times_copied']==self.replication_factor:
                 response = {
-                    "type": "insertion_response",
+                    "type": "query_response",
                     "key": request['key'],
-                    "inserted": True
+                    "value": self.query_mongodb(request['key'])
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
-            if request['times_copied']<self.replication_factor:
+            elif request['times_copied']<self.replication_factor:
                 self.pass_request(request)
         else:
             # Forward the request to the successor
             self.pass_request(request)
+
+    def query_mongodb(self, key):
+        query = self.collection.find_one({"key": key})
+        return query["value"]
 
     def handle_deletion_request(self, request):
         """Handle a deletion request."""
