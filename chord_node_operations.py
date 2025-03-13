@@ -118,6 +118,7 @@ class ChordNodeOperations(ChordNodeHandlers):
             request = {
                 "type": "insertion",
                 "key": key_hash,
+                "value": key,
                 "sender_ip": self.ip,
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,

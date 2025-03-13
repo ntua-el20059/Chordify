@@ -139,7 +139,7 @@ class ChordNodeHandlers(ChordNodeCore):
     
     def insert_into_mongo(self, key, value):
         """Insert a key-value pair into the MongoDB collection."""
-        self.collection.insert_one({"key": key, "value": value})
+        self.collection.insert_one({"key": f"{key}", "value": value})
 
     def handle_query_request(self, request):
         if self.consistency_type=="eventual":
@@ -184,7 +184,7 @@ class ChordNodeHandlers(ChordNodeCore):
             self.pass_request(request)
 
     def query_mongodb(self, key):
-        query = self.collection.find_one({"key": key})
+        query = self.collection.find_one({"key": f"{key}"})
         return query["value"]
 
     def handle_deletion_request(self, request):
