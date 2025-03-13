@@ -76,6 +76,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                     "node_id": response['predecessor_id']
                 }
                 self.consistency_type = response["consistency_type"]
+                self.replication_factor = response["replication_factor"]
                 print(f"🟢 Successfully joined network. Successor: {self.successor}, Predecessor: {self.predecessor}")
             conn.close()
 
@@ -152,8 +153,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
                 "sender_id": self.node_id,
-                "times_copied": 0,
-                "found": None
+                "times_copied": 0
             }
             self.pass_request(request,self.ip,self.port)
             print("🕒 Waiting for response...")
@@ -161,7 +161,7 @@ class ChordNodeOperations(ChordNodeHandlers):
             data = conn.recv(1024).decode()
             if data:
                 response = json.loads(data)
-                print(f"📨 Song \"{key}\" was { "not" if response["found"]==False else " "}found")
+                print(f"📨 Song \"{key}\" was { "not" if response["value"]==None else " "} found")
             conn.close()
             
 
