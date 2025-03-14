@@ -14,6 +14,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                 temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
                 temp_port = temp_socket.getsockname()[1]
                 temp_socket.listen(1)
+                temp_socket.settimeout(10)
                 print(f"🔍 Listening for response on temporary port {temp_port}")
 
                 request = {
@@ -21,18 +22,22 @@ class ChordNodeOperations(ChordNodeHandlers):
                     "sender_ip": self.ip,
                     "sender_port": temp_port,
                     "sender_id": self.node_id,
-                    "target_id": self.hash_function(f"{target_ip}:{target_port}")
+                    "target_id": self.hash_function(f"{target_ip}:{target_port}"),
+                    "msg": "Einai o pappous ekei?"
                 }
                 self.pass_request(request=request, target_ip=target_ip, target_port=target_port)
 
                 # Wait for the response on the temporary socket
                 print("🕒 Waiting for response...")
-                conn, addr = temp_socket.accept()
-                data = conn.recv(1024).decode()
-                if data:
-                    response = json.loads(data)
-                    print(f"📨 Received response: {response['msg']}")
-                conn.close()
+                try:
+                    conn, _ = temp_socket.accept()
+                    data = conn.recv(1024).decode()
+                    if data:
+                        response = json.loads(data)
+                        print(f"📨 Received response: {response['msg']}")
+                    conn.close()
+                except socket.timeout:
+                    print("⏳ Timeout: No response received within the timeout period.")
 
     def join(self):
         """Join an existing Chord network using the bootstrap node."""
@@ -44,6 +49,7 @@ class ChordNodeOperations(ChordNodeHandlers):
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
             temp_socket.listen(1)
+            temp_socket.settimeout(10)
             print(f"🔍 Listening for response on temporary port {temp_port}")
 
             request = {
@@ -60,25 +66,29 @@ class ChordNodeOperations(ChordNodeHandlers):
 
             # Wait for the response on the temporary socket
             print("🕒 Waiting for response...")
-            conn, _ = temp_socket.accept()
-            data = conn.recv(1024).decode()
-            if data:
-                response = json.loads(data)
-                print(f"📨 Received response: {response}")
-                self.successor = {
-                    "ip": response['successor_ip'],
-                    "port": response['successor_port'],
-                    "node_id": response['successor_id']
-                }
-                self.predecessor = {
-                    "ip": response['predecessor_ip'],
-                    "port": response['predecessor_port'],
-                    "node_id": response['predecessor_id']
-                }
-                self.consistency_type = response["consistency_type"]
-                self.replication_factor = response["replication_factor"]
-                print(f"🟢 Successfully joined network. Successor: {self.successor}, Predecessor: {self.predecessor}")
-            conn.close()
+            try:
+                conn, _ = temp_socket.accept()
+                data = conn.recv(1024).decode()
+                if data:
+                    response = json.loads(data)
+                    print(f"📨 Received response: {response}")
+                    self.successor = {
+                        "ip": response['successor_ip'],
+                        "port": response['successor_port'],
+                        "node_id": response['successor_id']
+                    }
+                    self.predecessor = {
+                        "ip": response['predecessor_ip'],
+                        "port": response['predecessor_port'],
+                        "node_id": response['predecessor_id']
+                    }
+                    self.consistency_type = response["consistency_type"]
+                    self.replication_factor = response["replication_factor"]
+                    print(f"🟢 Successfully joined network. Successor: {self.successor}, Predecessor: {self.predecessor}")
+                conn.close()
+            except socket.timeout:
+                    print("⏳ Timeout: No response received within the timeout period.")
+                    self.close()
 
     def depart(self):
         """Depart from the Chord network gracefully."""
@@ -110,6 +120,7 @@ class ChordNodeOperations(ChordNodeHandlers):
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
             temp_socket.listen(1)
+            temp_socket.settimeout(10)
 
 
             key_hash = self.hash_function(key)
@@ -128,11 +139,14 @@ class ChordNodeOperations(ChordNodeHandlers):
             print("🕒 Waiting for response...")
             conn, _ = temp_socket.accept()
             data = conn.recv(1024).decode()
-            if data:
-                response = json.loads(data)
-                if response:
-                    print(f"📨 Song was inserted successfully")
-            conn.close()
+            try:    
+                if data:
+                    response = json.loads(data)
+                    if response:
+                        print(f"📨 Song was inserted successfully")
+                conn.close()
+            except socket.timeout:
+                    print("⏳ Timeout: No response received within the timeout period.")
             
 
     def query(self, key):
@@ -142,8 +156,12 @@ class ChordNodeOperations(ChordNodeHandlers):
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
             temp_socket.listen(1)
+            temp_socket.settimeout(10)
 
-
+            if key == "*":
+                self.query_all()
+                return
+            
             key_hash = self.hash_function(key)
             print(f"🔍 Querying for key {key} with hash {key_hash}")
             request = {
@@ -157,12 +175,19 @@ class ChordNodeOperations(ChordNodeHandlers):
             }
             self.pass_request(request,self.ip,self.port)
             print("🕒 Waiting for response...")
-            conn, _ = temp_socket.accept()
-            data = conn.recv(1024).decode()
-            if data:
-                response = json.loads(data)
-                print(f"📨 Song \"{key}\" was { "not" if response["value"]==None else " "}found")
-            conn.close()
+            try:
+                conn, _ = temp_socket.accept()
+                data = conn.recv(1024).decode()
+                if data:
+                    response = json.loads(data)
+                    print(f"📨 Song \"{key}\" was { "not" if response["value"]==None else " "}found")
+                conn.close()
+            except socket.timeout:
+                    print("⏳ Timeout: No response received within the timeout period.")
+
+    def query_all(self):
+        """Query all keys in the Chord network."""
+        
             
 
     def stop(self):

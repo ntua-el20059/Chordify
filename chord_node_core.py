@@ -8,11 +8,12 @@ import json
 
 class ChordNodeCore:
     def __init__(self, port=None, bootstrap_node=None, replication_factor=1, consistency_type="linearizability"):
+        self.print_lock = threading.Lock()
         try:
             self.ip = self.get_public_ip()
         except Exception as e:
-            print(f"❌ Failed to resolve local IP: {e}, defaulting to localhost")
-            self.ip = "127.0.0.1"
+            print(f"❌ Failed to resolve public IP: {e}")
+            exit(1)
         self.port = self.get_free_port(port)  # Assign a free port
         self.node_id = self.hash_function(f"{self.ip}:{self.port}")
         self.replication_factor = replication_factor
@@ -38,7 +39,7 @@ class ChordNodeCore:
         self.db = self.mongoclient["database"]  
         self.collection = self.db["collection"]
 
-    def get_public_ip():
+    def get_public_ip(self):
         response = requests.get('https://api.ipify.org?format=json')
         response.raise_for_status()  # Raise an exception for HTTP errors
         ip_info = response.json()

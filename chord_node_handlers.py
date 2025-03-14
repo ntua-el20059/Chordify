@@ -37,13 +37,13 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_greet_request(self, request):
         """Handle a greet request."""
-        print(f"👋 Hello from {request['sender_ip']}:{request['sender_port']}")
+        print(f"👋 Received messsage from {request['sender_ip']}:{request['sender_port']}\n{request["msg"]}")
         response = {
             "type": "greet_response",
             "sender_ip": self.ip,
             "sender_port": self.port,
             "sender_id": self.node_id,
-            "msg": "Einai o pappous ekei?"
+            "msg": "O pappous einai EKEI. 1-0"
         }
         self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_port'])# Send response back to the sender
         

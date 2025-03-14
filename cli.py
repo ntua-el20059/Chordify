@@ -72,7 +72,7 @@ def main():
         node.start_server()
     except KeyboardInterrupt:
         print("\n🛑 Received KeyboardInterrupt. Shutting down...")
-        node.stop()
+        node.depart()
         sys.exit(0)
 
 
