@@ -13,8 +13,10 @@ class ChordNodeCore:
             except Exception as e:
                 print(f"❌ Failed to resolve local IP: {e}\n❌ Aborting...")
                 exit(1)
-            self.port = self.get_free_port()
+        if bootstrap_node is not None:
+            self.port = self.get_free_port()  # Assign a free port
         else:
+            self.ip="3.120.166.10"
             self.port = 5000
         self.node_id = self.hash_function(f"{self.ip}:{self.port}")
         self.replication_factor = replication_factor
