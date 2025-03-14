@@ -43,6 +43,7 @@ class ChordNodeCore:
         response = requests.get('https://api.ipify.org?format=json')
         response.raise_for_status()  # Raise an exception for HTTP errors
         ip_info = response.json()
+        print(f"🌐 Public IP: {ip_info['ip']}")
         return ip_info['ip']
     
     def get_free_port(self, port):
