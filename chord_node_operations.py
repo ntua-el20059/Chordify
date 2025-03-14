@@ -153,8 +153,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
                 "sender_id": self.node_id,
-                "times_copied": 0,
-                "found": None
+                "times_copied": 0
             }
             self.pass_request(request,self.ip,self.port)
             print("🕒 Waiting for response...")
@@ -162,14 +161,18 @@ class ChordNodeOperations(ChordNodeHandlers):
             data = conn.recv(1024).decode()
             if data:
                 response = json.loads(data)
-                print(f"📨 Song \"{key}\" was { "not" if response["found"]==False else " "}found")
+                print(f"📨 Song \"{key}\" was { "not" if response["value"]==None else " "}found")
             conn.close()
             
 
     def stop(self):
         """Stop the server and clean up resources."""
         self.running = False
-        self.mongoclient.close()
+        #try:
+        #    self.server_socket.shutdown(socket.SHUT_RDWR)
+        #except:
+        #    pass
+        #self.mongoclient.close()
         if self.server_socket:
             self.server_socket.close()
         print("🛑 Stopping node...")

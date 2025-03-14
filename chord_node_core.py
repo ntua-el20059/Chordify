@@ -1,6 +1,7 @@
 import hashlib
 import socket
 from pymongo import MongoClient
+import requests
 import threading
 import json
 
@@ -8,7 +9,7 @@ import json
 class ChordNodeCore:
     def __init__(self, port=None, bootstrap_node=None, replication_factor=1, consistency_type="linearizability"):
         try:
-            self.ip = socket.gethostbyname(socket.gethostname())
+            self.ip = self.get_public_ip()
         except Exception as e:
             print(f"❌ Failed to resolve local IP: {e}, defaulting to localhost")
             self.ip = "127.0.0.1"
@@ -37,6 +38,12 @@ class ChordNodeCore:
         self.db = self.mongoclient["database"]  
         self.collection = self.db["collection"]
 
+    def get_public_ip():
+        response = requests.get('https://api.ipify.org?format=json')
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        ip_info = response.json()
+        return ip_info['ip']
+    
     def get_free_port(self, port):
         """Assign a free port. If a specific port is provided, check if it's free."""
         if port is not None:
@@ -58,6 +65,8 @@ class ChordNodeCore:
                 return True
             except:
                 return False
+
+    
 
     def get_port(self):
         return self.port
