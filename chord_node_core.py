@@ -7,16 +7,14 @@ import json
 
 class ChordNodeCore:
     def __init__(self, port=None, bootstrap_node=None, replication_factor=1, consistency_type="linearizability"):
-        if bootstrap_node is not None:
-            try:
-                self.ip = socket.gethostbyname(socket.gethostname())
-            except Exception as e:
-                print(f"❌ Failed to resolve local IP: {e}\n❌ Aborting...")
-                exit(1)
+        try:
+            self.ip = socket.gethostbyname(socket.gethostname())
+        except Exception as e:
+            print(f"❌ Failed to resolve local IP: {e}\n❌ Aborting...")
+            exit(1)   
         if bootstrap_node is not None:
             self.port = self.get_free_port()  # Assign a free port
         else:
-            self.ip="3.120.166.10"
             self.port = 5000
         self.node_id = self.hash_function(f"{self.ip}:{self.port}")
         self.replication_factor = replication_factor
