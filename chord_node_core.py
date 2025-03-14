@@ -1,20 +1,21 @@
 import hashlib
 import socket
 from pymongo import MongoClient
-import requests
 import threading
 import json
 
 
 class ChordNodeCore:
     def __init__(self, port=None, bootstrap_node=None, replication_factor=1, consistency_type="linearizability"):
-        self.print_lock = threading.Lock()
         try:
-            self.ip = self.get_public_ip()
+            self.ip = socket.gethostbyname(socket.gethostname())
         except Exception as e:
-            print(f"❌ Failed to resolve public IP: {e}")
+            print(f"❌ Failed to resolve local IP: {e}\n❌ Aborting...")
             exit(1)
-        self.port = self.get_free_port(port)  # Assign a free port
+        if bootstrap_node is not None:
+            self.port = self.get_free_port()  # Assign a free port
+        else:
+            self.port = 5000
         self.node_id = self.hash_function(f"{self.ip}:{self.port}")
         self.replication_factor = replication_factor
         self.data_store = {}  # Local DHT storage (key = song name, value = IP of node)
@@ -39,24 +40,12 @@ class ChordNodeCore:
         self.db = self.mongoclient["database"]  
         self.collection = self.db["collection"]
 
-    def get_public_ip(self):
-        response = requests.get('https://api.ipify.org?format=json')
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        ip_info = response.json()
-        return ip_info['ip']
-    
-    def get_free_port(self, port):
-        """Assign a free port. If a specific port is provided, check if it's free."""
-        if port is not None:
-            if self.is_port_free(port):
-                return port
-            else:
-                print(f"⚠️ Port {port} is not free. Assigning a free port automatically.")
-        # Let the OS assign a free port dynamically
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.bind(("0.0.0.0", 0))  # Bind to port 0 to let the OS choose a free port
-            free_port = sock.getsockname()[1]  # Get the assigned port
-            return free_port
+    def get_free_port(self):
+        """Assign a free port."""
+        for i in range(5000,6000):
+            if self.is_port_free(i):
+                return i
+        return -1
 
     def is_port_free(self, port):
         """Check if a port is free."""
@@ -66,8 +55,6 @@ class ChordNodeCore:
                 return True
             except:
                 return False
-
-    
 
     def get_port(self):
         return self.port
