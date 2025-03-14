@@ -159,7 +159,7 @@ class ChordNodeHandlers(ChordNodeCore):
             response = {
                 "type": "query_response",
                 "key": request['key'],
-                "value": self.query_mongodb(request['key']) 
+                "value": self.query_mongodb(request['key'])
             }
             self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
         else:
