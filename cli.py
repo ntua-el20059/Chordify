@@ -25,6 +25,8 @@ def cli(node):
             print(f"ℹ️ Self: {node.node_id//2**155}")
             print(f"ℹ️ Successor: {node.successor['node_id']//2**155}")
             print(f"ℹ️ Predecessor: {node.predecessor['node_id']//2**155}")
+            for document in node.collection.find():
+                print(document)
         elif choice == "insert":
             key = input("Enter the key to insert: ")
             node.insert(key)
