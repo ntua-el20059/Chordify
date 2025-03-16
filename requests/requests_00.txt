@@ -1,0 +1,50 @@
+query, Hey Jude
+insert, Respect, 528
+query, Hey Jude
+query, Like a Rolling Stone
+query, Respect
+insert, Respect, 522
+insert, Hey Jude, 542
+query, Hey Jude
+query, Hey Jude
+query, Respect
+query, What's Going On
+insert, Like a Rolling Stone, 582
+insert, Like a Rolling Stone, 504
+query, What's Going On
+insert, What's Going On, 531
+query, What's Going On
+query, Respect
+query, Respect
+query, Respect
+query, What's Going On
+query, Hey Jude
+query, Like a Rolling Stone
+insert, Hey Jude, 596
+query, Like a Rolling Stone
+query, Like a Rolling Stone
+query, Hey Jude
+query, Hey Jude
+query, What's Going On
+query, Hey Jude
+query, Hey Jude
+query, Hey Jude
+query, Respect
+query, Like a Rolling Stone
+query, Hey Jude
+insert, Respect, 566
+query, Respect
+query, Like a Rolling Stone
+insert, Hey Jude, 506
+query, Respect
+insert, What's Going On, 529
+query, Hey Jude
+query, Respect
+query, What's Going On
+query, Like a Rolling Stone
+query, Hey Jude
+query, Hey Jude
+query, Hey Jude
+query, Like a Rolling Stone
+insert, Hey Jude, 502
+query, What's Going On
