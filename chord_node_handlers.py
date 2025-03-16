@@ -196,7 +196,10 @@ class ChordNodeHandlers(ChordNodeCore):
     
     def query_mongodb(self, key_hash):
         query = self.collection.find_one({"key_hash": f"{key_hash}"})
-        return query["value"]
+        if query:
+            return query["value"]
+        else:
+            return None
 
     def handle_query_all_request(self, request):
         print("ftanoume sthn handle query all request")
