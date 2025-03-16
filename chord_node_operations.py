@@ -184,7 +184,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                 data = conn.recv(1024).decode()
                 if data:
                     response = json.loads(data)
-                    print(f"📨 Song \"{key}\" was { "not" if response["value"]==None else " "}found")
+                    print(f"📨 Song \"{key}\" was { "not " if response["value"]==None else " "}found")
                 conn.close()
             except socket.timeout:
                     print("⏳ Timeout: No response received within the timeout period.")
@@ -317,7 +317,7 @@ class ChordNodeOperations(ChordNodeHandlers):
         #    self.server_socket.shutdown(socket.SHUT_RDWR)
         #except:
         #    pass
-        #self.mongoclient.close()
+        self.mongoclient.close()
         if self.server_socket:
             self.server_socket.close()
         print("🛑 Stopping node...")
