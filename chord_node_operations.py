@@ -108,8 +108,9 @@ class ChordNodeOperations(ChordNodeHandlers):
             }
             self.pass_request(request)
             self.pass_request(request=request,target_ip=self.predecessor["ip"],target_port=self.predecessor["port"])
-            request["type"] = "departure_announcement"
-            self.pass_request(request, self.bootstrap_node["ip"], self.bootstrap_node["port"])
+            if self.debugging:
+                request["type"] = "departure_announcement"
+                self.pass_request(request, self.bootstrap_node["ip"], self.bootstrap_node["port"])
 
         self.stop()
     

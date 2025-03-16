@@ -119,7 +119,7 @@ class ChordNodeHandlers(ChordNodeCore):
 
 
             self.insert_into_mongo(request['key'], request['value'])
-            print("Inseted into mongo")
+            print("Inserted into mongo")
 
             
             if request['times_copied']==self.replication_factor and self.consistency_type=="linearizability":

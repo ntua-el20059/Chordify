@@ -10,8 +10,9 @@ class ChordNodeHandlers(ChordNodeCore):
             data = conn.recv(1024).decode()
             if data:
                 request = json.loads(data)
-                print(f"📨 Received request from {request['sender_ip']}:{request['sender_port']}")
-                print(f"📝 Request details: {request}")
+                if self.debugging:
+                    print(f"📨 Received request from {request['sender_ip']}:{request['sender_port']}")
+                    print(f"📝 Request details: {request}")
 
                 # Handle different request types
                 if request['type'] == 'greet':
@@ -31,7 +32,7 @@ class ChordNodeHandlers(ChordNodeCore):
                 elif request['type'] == 'overlay':
                     self.handle_overlay_request(request)
                 elif request['type'] == 'departure_announcement':
-                    if self.bootstrap_node["node_id"] == self.node_id:
+                    if self.bootstrap_node["node_id"] == self.node_id and self.debugging:
                         (f"🟡 Node {request['sender_ip']}:{request['sender_port']} is departing.")
 
         except Exception as e:
@@ -147,7 +148,10 @@ class ChordNodeHandlers(ChordNodeCore):
     
     def insert_into_mongodb(self, key, key_hash, value):
         """Insert a key-value pair into the MongoDB collection."""
-        self.collection.insert_one({"key":key, "key_hash": f"{key_hash}", "value": value})
+        old_value = self.query_mongodb(key_hash)
+        if old_value is not None:
+            self.remove_from_mongodb(key_hash)
+        self.collection.insert_one({"key":key, "key_hash": f"{key_hash}", "value": old_value+value})
 
     def handle_query_request(self, request):
         if self.consistency_type=="eventual":

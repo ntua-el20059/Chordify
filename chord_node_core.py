@@ -6,7 +6,7 @@ import json
 
 
 class ChordNodeCore:
-    def __init__(self, port=None, bootstrap_node=None, replication_factor=1, consistency_type="linearizability"):
+    def __init__(self, port=None, bootstrap_node=None, replication_factor=1, consistency_type="linearizability", debugging=True):
         try:
             self.ip = socket.gethostbyname(socket.gethostname())
         except Exception as e:
@@ -26,6 +26,8 @@ class ChordNodeCore:
         self.bootstrap_node = bootstrap_node  # Dictionary containing bootstrap node details
         self.running = True  # Flag to control the server loop
         self.server_socket = None  # Store the server socket for cleanup
+        self.debugging = debugging
+        #self.print_lock = threading.Lock()
 
         if bootstrap_node is None:
             # If this is the first node, it is its own successor and predecessor
@@ -97,13 +99,13 @@ class ChordNodeCore:
         try:
             if target_ip is None or target_port is None:
                 succ_ip, succ_port = self.get_successor()
-                print(f"Succ port is {succ_port}")
                 self.pass_request(request, succ_ip, succ_port)
             else:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     sock.settimeout(10)  
                     sock.connect((target_ip, target_port))
-                    print(f"📤 Sent request to {target_ip}:{target_port}")
+                    if self.debugging:
+                        print(f"📤 Sent request to {target_ip}:{target_port}")
                     sock.send(json.dumps(request).encode())
                     sock.shutdown(socket.SHUT_WR) 
         except Exception as e:
