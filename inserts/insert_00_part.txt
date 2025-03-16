@@ -1,0 +1,50 @@
+insert, Like a Rolling Stone
+insert, Satisfaction
+insert, Imagine
+insert, What's Going On
+insert, Respect
+insert, Good Vibrations
+insert, Johnny B. Goode
+insert, Hey Jude
+insert, Smells Like Teen Spirit
+insert, What'd I Say
+insert, My Generation
+insert, A Change Is Gonna Come
+insert, Yesterday
+insert, Blowin' in the Wind
+insert, London Calling
+insert, I Want to Hold Your Hand
+insert, Purple Haze
+insert, Maybellene
+insert, Hound Dog
+insert, Let It Be
+insert, Born to Run
+insert, Be My Baby
+insert, In My Life
+insert, People Get Ready
+insert, God Only Knows
+insert, A Day in the Life
+insert, Layla
+insert, (Sittin on) the Dock of the Bay
+insert, Help!
+insert, I Walk the Line
+insert, Stairway To Heaven
+insert, Sympathy for the Devil
+insert, River Deep - Mountain High
+insert, You've Lost That Lovin' Feelin'
+insert, Light My Fire
+insert, One
+insert, No Woman
+insert, Gimme Shelter
+insert, That'll Be the Day
+insert, Dancing in the Street
+insert, The Weight
+insert, Waterloo Sunset
+insert, Tutti-Frutti
+insert, Georgia on My Mind
+insert, Heartbreak Hotel
+insert, Heroes
+insert, Bridge Over Troubled Water
+insert, All Along the Watchtower
+insert, Hotel California
+insert, The Tracks of My Tears

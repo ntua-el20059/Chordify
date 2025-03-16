@@ -1,0 +1,50 @@
+insert, The Message
+insert, When Doves Cry
+insert, Anarchy in the U.K.
+insert, When a Man Loves a Woman
+insert, Louie Louie
+insert, Long Tall Sally
+insert, Whiter Shade of Pale
+insert, Billie Jean
+insert, The Times They Are A-Changin'
+insert, Let's Stay Together
+insert, Whole Lotta Shakin' Goin On
+insert, Bo Diddley
+insert, For What It's Worth
+insert, She Loves You
+insert, Sunshine of Your Love
+insert, Redemption Song
+insert, Jailhouse Rock
+insert, Tangled Up in Blue
+insert, Crying
+insert, Walk On By
+insert, California Girls
+insert, Papa's Got a Brand New Bag
+insert, Summertime Blues
+insert, Superstition
+insert, Whole Lotta Love
+insert, Strawberry Fields Forever
+insert, Mystery Train
+insert, I Got You (I Feel Good)
+insert, Mr. Tambourine Man
+insert, I Heard It Through the Grapevine
+insert, Blueberry Hill
+insert, You Really Got Me
+insert, Norwegian Wood (This Bird Has Flown)
+insert, Every Breath You Take
+insert, Crazy
+insert, Thunder Road
+insert, Ring of Fire
+insert, My Girl
+insert, California Dreamin'
+insert, In the Still of the Nite
+insert, Suspicious Minds
+insert, Blitzkrieg Bop
+insert, I Still Haven't Found What I'm Looking For
+insert, Good Golly
+insert, Blue Suede Shoes
+insert, Great Balls of Fire
+insert, Roll Over Beethoven
+insert, Love and Happiness
+insert, Fortunate Son
+insert, You Can't Always Get What You Want
