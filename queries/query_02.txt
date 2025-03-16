@@ -1,0 +1,50 @@
+query, What's Going On
+query, Like a Rolling Stone
+query, Smells Like Teen Spirit
+query, Satisfaction
+query, Hey Jude
+query, Smells Like Teen Spirit
+query, Like a Rolling Stone
+query, What'd I Say
+query, Johnny B. Goode
+query, Smells Like Teen Spirit
+query, Imagine
+query, Good Vibrations
+query, Johnny B. Goode
+query, Hey Jude
+query, Johnny B. Goode
+query, Good Vibrations
+query, Johnny B. Goode
+query, Like a Rolling Stone
+query, What'd I Say
+query, Smells Like Teen Spirit
+query, Smells Like Teen Spirit
+query, Satisfaction
+query, Smells Like Teen Spirit
+query, Imagine
+query, What's Going On
+query, What's Going On
+query, Respect
+query, Hey Jude
+query, Johnny B. Goode
+query, Smells Like Teen Spirit
+query, What's Going On
+query, What'd I Say
+query, What's Going On
+query, Satisfaction
+query, What's Going On
+query, Respect
+query, Johnny B. Goode
+query, Johnny B. Goode
+query, Like a Rolling Stone
+query, Satisfaction
+query, Hey Jude
+query, Like a Rolling Stone
+query, Respect
+query, Satisfaction
+query, Imagine
+query, What's Going On
+query, Respect
+query, Respect
+query, What'd I Say
+query, Respect
