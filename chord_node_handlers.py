@@ -164,6 +164,9 @@ class ChordNodeHandlers(ChordNodeCore):
             (request['key_hash'] > self.node_id or request['key_hash'] < self.successor["node_id"]))):
             response = {
                 "type": "query_response",
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_node_id": self.node_id,
                 "key": request['key'],
                 "key_hash": request['key_hash'],
                 "value": self.query_mongodb(request['key_hash'])
@@ -183,6 +186,9 @@ class ChordNodeHandlers(ChordNodeCore):
             if request['times_copied']==self.replication_factor:
                 response = {
                     "type": "query_response",
+                    "sender_ip": self.ip,
+                    "sender_port": self.port,
+                    "sender_node_id": self.node_id,
                     "key": request['key'],
                     "key_hash": request['key_hash'],
                     "value": self.query_mongodb(request['key_hash'])
