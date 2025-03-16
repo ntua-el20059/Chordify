@@ -184,7 +184,10 @@ class ChordNodeOperations(ChordNodeHandlers):
                 data = conn.recv(1024).decode()
                 if data:
                     response = json.loads(data)
-                    print(f"📨 Song \"{key}\" was { "not found" if response["value"]==None else "found in node "}{response["sender_ip"]}:{response["sender_port"]}")
+                    if response["value"]==None:
+                        print(f"📨 Song \"{key}\" was not found.")
+                    else:
+                        print(f"📨 Song \"{key}\" was found in node {response['sender_ip']}:{response['sender_port']}({response["sender_node_id"]//2**155}) with value {response['value']}")
                 conn.close()
             except socket.timeout:
                     print("⏳ Timeout: No response received within the timeout period.")
