@@ -239,6 +239,7 @@ class ChordNodeOperations(ChordNodeHandlers):
     def query_all(self):
         """Query all keys in the Chord network."""
         
+        
             
 
     def stop(self):
@@ -252,3 +253,30 @@ class ChordNodeOperations(ChordNodeHandlers):
         if self.server_socket:
             self.server_socket.close()
         print("🛑 Stopping node...")
+
+    def delete(self, key):
+         """Delete a key from Chord Network"""
+         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+            temp_port = temp_socket.getsockname()[1]
+            temp_socket.listen(1)
+            temp_socket.settimeout(10)
+
+            key_hash = self.hash_function(key)
+            print(f"🔍 Searching for key {key} with hash {key_hash}")
+            request = {
+                "type": "deletion",
+                "key": key_hash,
+                "value": key,
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_temp_port": temp_port,
+                "sender_id": self.node_id,
+                "made_circle": False,
+                "times_deleted": 0
+            }
+            self.pass_request(request,self.ip,self.port)
+
+
+

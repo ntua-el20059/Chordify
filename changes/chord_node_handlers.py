@@ -25,7 +25,7 @@ class ChordNodeHandlers(ChordNodeCore):
                 elif request['type'] == 'query':
                     self.handle_query_request(request)
                 elif request['type'] == 'deletion':
-                    self.handle_deletion_request(request)
+                    self.handle_delete_request(request)
                 elif request['type'] == 'departure_announcement':
                     if self.bootstrap_node["node_id"] == self.node_id:
                         (f"🟡 Node {request['sender_ip']}:{request['sender_port']} is departing.")
@@ -159,14 +159,12 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_query_request_eventual_consistency(self, request):
         """Handle a query request."""
-        if (self.successor["node_id"] == self.node_id or  # Bootstrap node case
-            self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
-            (self.successor["node_id"] < self.node_id and  # Wrap-around case
-            (request['key'] > self.node_id or request['key'] < self.successor["node_id"]))):
+        document = self.collection.find_one(request['key'])
+        if document:
             response = {
                 "type": "query_response",
-                "key": request['key'],
-                "value": self.query_mongodb(request['key'])
+                "key": document['key'],
+                "value": document['value']
             }
             self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
         else:
@@ -216,7 +214,6 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_get_keys_request(self, request):
         """Send the keys belonging to your new predecessor"""
-        print(request)
         response = {
                 "type": "get_keys_response",
                 "sender_ip": request["sender_ip"],
@@ -237,3 +234,21 @@ class ChordNodeHandlers(ChordNodeCore):
                     "times_copied": 0
             }
             self.pass_request(key_transmit_request, target_ip=self.predecessor["ip"], target_port=self.predecessor["port"])
+
+    def handle_delete_request(self, request):
+        if (self.successor["node_id"] == self.node_id or # Bootstrap node case
+        self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
+        (self.successor["node_id"] < self.node_id and  # Wrap-around case
+        (request['key'] > self.node_id or request['key'] < self.successor["node_id"])) or
+        0<request['times_deleted']<self.replication_factor):
+            query = {"key": f"{request['key']}"}
+            self.collection.delete_one(query)
+            print(f"🟢 {request["value"]} song deleted from node {self.node_id} with ip: {self.ip}")
+            request['times_deleted']+=1
+            self.pass_request(request)
+        elif request['times_deleted'] == self.replication_factor:
+            # Deletion Done!
+            request['times_deleted']+=1
+        else:
+            # Forward the request to the successor
+            self.pass_request(request)

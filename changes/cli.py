@@ -37,6 +37,9 @@ def cli(node):
             print("👋 Departing.")
             node.depart()
             break
+        elif choice == "delete":
+            key = input("Enter the key to delete: ")
+            node.delete(key)
         else:
             print("❌ Invalid option, please try again.")
 
