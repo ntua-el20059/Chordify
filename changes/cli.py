@@ -25,19 +25,14 @@ def cli(node):
             print(f"ℹ️ Self: {node.node_id//2**155}")
             print(f"ℹ️ Successor: {node.successor['node_id']//2**155}")
             print(f"ℹ️ Predecessor: {node.predecessor['node_id']//2**155}")
-            for document in node.collection.find():
-                print(document)
+            for key in node.collection.find():
+                print(key)
         elif choice == "insert":
             key = input("Enter the key to insert: ")
             node.insert(key)
         elif choice == "query":
             key = f"{input("Enter the key to query: ")}"
             node.query(key)
-        elif choice == "delete":
-            key = input("Enter the key to delete: ")
-            node.delete(key)
-        elif choice == "overlay":
-            print(node.overlay())
         elif choice == "exit":
             print("👋 Departing.")
             node.depart()
