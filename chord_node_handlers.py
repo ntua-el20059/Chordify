@@ -24,8 +24,12 @@ class ChordNodeHandlers(ChordNodeCore):
                     self.handle_insertion_request(request)
                 elif request['type'] == 'query':
                     self.handle_query_request(request)
+                elif request['type'] == 'query_all':
+                    self.handle_query_all_request(request)
                 elif request['type'] == 'deletion':
                     self.handle_deletion_request(request)
+                elif request['type'] == 'overlay':
+                    self.handle_overlay_request(request)
                 elif request['type'] == 'departure_announcement':
                     if self.bootstrap_node["node_id"] == self.node_id:
                         (f"🟡 Node {request['sender_ip']}:{request['sender_port']} is departing.")
@@ -165,6 +169,7 @@ class ChordNodeHandlers(ChordNodeCore):
         else:
             self.pass_request(request)
 
+
     def handle_query_request_linearizability(self, request):
         if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
         self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
@@ -184,25 +189,68 @@ class ChordNodeHandlers(ChordNodeCore):
         else:
             # Forward the request to the successor
             self.pass_request(request)
-
+    
     def query_mongodb(self, key):
         query = self.collection.find_one({"key": f"{key}"})
         return query["value"]
 
+    def handle_query_all_request(self, request):
+        print("ftanoume sthn handle query all request")
+        response = {
+            "type": "query_all_response",
+            "next": self.successor,
+            "node_id": self.node_id,
+            "key_value_list" : self.query_all_mongodb()
+        }
+        self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
+    
+
+    def query_all_mongodb(self):
+        """Returns a list of all key value pairs inside the local mongodb collection."""
+        print("EDW PREPEI NA TO VALOUME NA KANEI FIND ALL KAI META NA TA PAIRNEI ENA ENA KAI NA TA VAZEI SE MIA LISTA KAI NA THN KANEI RETURN")
+        return [{"key": "fanh", "value": "vohtheia"}]
+
     def handle_deletion_request(self, request):
-        """Handle a deletion request."""
-        if (self.successor["node_id"] == self.node_id or  # Bootstrap node case
+        if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
         self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
         (self.successor["node_id"] < self.node_id and  # Wrap-around case
-        (request['key'] > self.node_id or request['key'] < self.successor["node_id"])) or
-        0<request['times_deleted']<self.replication_factor):
-            # Key belongs to this node
-            #if request['key'] in self.data_store:
-            print(f"🟢 Key {request['key']} deleted successfully.")
-            #self.data_store[request['key']] = request['value']
-            request['times_deleted']+=1
+        (request['key'] > self.node_id or request['key'] < self.successor["node_id"])) and request["times_copied"]==0) or
+        0<request['times_copied']<self.replication_factor):
+            request['times_copied']+=1
+
+
+            self.remove_from_mongodb(request['key'])
+
+
+            if request['times_copied']==self.replication_factor and self.consistency_type=="linearizability":
+                response = {
+                    "type": "deletion_response",
+                    "key": request['key'],
+                    "inserted": True
+                }
+                self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
+            if request['times_copied']==1 and self.consistency_type=="eventual":
+                response = {
+                    "type": "deletion_response",
+                    "key": request['key'],
+                    "inserted": True
+                }
+                self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
             if request['times_copied']<self.replication_factor:
                 self.pass_request(request)
         else:
             # Forward the request to the successor
             self.pass_request(request)
+    
+    def remove_from_mongodb(self, key):
+        """Remove a key from mongo collection."""
+        print("AAAAA FANH SWSE ME")
+    
+    def handle_overlay_request(self, request):
+        """Handle an overlay request."""
+        response = {
+            "type": "overlay_response",
+            "node_characteristics": {"ip":self.ip,"port":self.port,"node_id":self.node_id},
+            "next": self.successor
+        }
+        self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])

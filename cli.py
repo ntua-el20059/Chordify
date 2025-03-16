@@ -31,6 +31,11 @@ def cli(node):
         elif choice == "query":
             key = f"{input("Enter the key to query: ")}"
             node.query(key)
+        elif choice == "delete":
+            key = input("Enter the key to delete: ")
+            node.delete(key)
+        elif choice == "overlay":
+            print(node.overlay())
         elif choice == "exit":
             print("👋 Departing.")
             node.depart()

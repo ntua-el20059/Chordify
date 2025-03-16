@@ -113,8 +113,8 @@ class ChordNodeOperations(ChordNodeHandlers):
 
         self.stop()
     
-    def insert(self, key):
-        """Insert a key into the Chord network."""
+    def insert(self, key, value=None):
+        """Insert a key-value pair into the Chord network."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
             temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
@@ -128,7 +128,7 @@ class ChordNodeOperations(ChordNodeHandlers):
             request = {
                 "type": "insertion",
                 "key": key_hash,
-                "value": key,
+                "value": key if value is None else value,
                 "sender_ip": self.ip,
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
@@ -151,16 +151,18 @@ class ChordNodeOperations(ChordNodeHandlers):
 
     def query(self, key):
         """Query for a key in the Chord network."""
+
+        if key == "*":
+            print("NA SYMPLHRWSW KWDIKA STO QUERY IF KEY == *")
+            print(self.query_all())
+            return
+        
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
             temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
             temp_socket.listen(1)
             temp_socket.settimeout(10)
-
-            if key == "*":
-                self.query_all()
-                return
             
             key_hash = self.hash_function(key)
             print(f"🔍 Querying for key {key} with hash {key_hash}")
@@ -187,8 +189,124 @@ class ChordNodeOperations(ChordNodeHandlers):
 
     def query_all(self):
         """Query all keys in the Chord network."""
+        key_value_list=self.query_all_mongodb()
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+            temp_port = temp_socket.getsockname()[1]
+            temp_socket.listen()
+            temp_socket.settimeout(20)
+
+            print(f"🔍 Querying for every key in the Chord network.")
+            request = {
+                "type": "query_all",
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_temp_port": temp_port,
+                "sender_id": self.node_id,
+            }
+            target_ip,target_port = self.successor["ip"], self.successor["port"]
+            while True:
+                self.pass_request(request,target_ip,target_port)
+                print("🕒 Waiting for response...")
+                conn, _ = temp_socket.accept()
+                data = conn.recv(1024).decode()
+                try:    
+                    if data:
+                        response = json.loads(data)
+                        if response:
+                            next_node=response["next"]
+                            if response["node_id"]==self.node_id:
+                                conn.close()
+                                return key_value_list
+                            target_ip, target_port = next_node["ip"], next_node["port"]
+                            key_value_list+=response["key_value_list"]
+                    conn.close()
+                    return []
+                except socket.timeout:
+                        print("⏳ Timeout: No response received within the timeout period.")
+                        conn.close()
+                        return []
+
+    def overlay(self):
+        """Display the overlay of the Chord network."""
+        node_list=[{"ip": self.ip, "port": self.port, "node_id": self.node_id}]
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+            temp_port = temp_socket.getsockname()[1]
+            temp_socket.listen()
+            temp_socket.settimeout(10)
+
+            print(f"FINDING THE NETWORK OVERLAY")
+            request = {
+                "type": "overlay",
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_temp_port": temp_port,
+                "sender_id": self.node_id,
+            }
+            target_ip,target_port = self.successor["ip"], self.successor["port"]
+            while True:
+                self.pass_request(request,target_ip,target_port)
+                print("🕒 Waiting for response...")
+                conn, _ = temp_socket.accept()
+                data = conn.recv(1024).decode()
+                try:    
+                    if data:
+                        response = json.loads(data)
+                        if response:
+                            characteristics=response["node_characteristics"]
+                            if characteristics["node_id"]==self.node_id:
+                                conn.close()
+                                return node_list
+                            target_ip, target_port = characteristics["ip"], characteristics["port"]
+                            node_list.append(characteristics)
+                    print("No data")
+                    conn.close()
+                    return []
+                except socket.timeout:
+                        print("⏳ Timeout: No response received within the timeout period.")
+                        conn.close()
+                        return []
         
-            
+
+    def delete(self, key):
+          "Remove a key from the Chord Network"
+          with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+            temp_port = temp_socket.getsockname()[1]
+            temp_socket.listen(1)
+            temp_socket.settimeout(10)
+
+
+            key_hash = self.hash_function(key)
+            print(f"🔍 Querying for key {key} with hash {key_hash}")
+            request = {
+                "type": "deletion",
+                "key": key_hash,
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_temp_port": temp_port,
+                "sender_id": self.node_id,
+                "times_copied": 0
+            }
+            self.pass_request(request,self.ip,self.port)
+            print("🕒 Waiting for response...")
+            conn, _ = temp_socket.accept()
+            data = conn.recv(1024).decode()
+            try:    
+                if data:
+                    response = json.loads(data)
+                    if response:
+                        print(f"📨 Song was deleted successfully")
+                conn.close()
+            except socket.timeout:
+                    print("⏳ Timeout: No response received within the timeout period.")
+
 
     def stop(self):
         """Stop the server and clean up resources."""
