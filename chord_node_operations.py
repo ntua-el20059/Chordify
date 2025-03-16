@@ -320,4 +320,5 @@ class ChordNodeOperations(ChordNodeHandlers):
         self.mongoclient.close()
         if self.server_socket:
             self.server_socket.close()
+            self.collection.delete_many({})
         print("🛑 Stopping node...")
