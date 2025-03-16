@@ -93,7 +93,7 @@ class ChordNodeCore:
         print("🔴 Server stopped.")
 
     def pass_request(self, request, target_ip=None, target_port=None):
-        """Send a request to another node."""
+        """Send a request to another node without waiting for a response."""
         try:
             if target_ip is None or target_port is None:
                 succ_ip, succ_port = self.get_successor()
@@ -101,9 +101,11 @@ class ChordNodeCore:
                 self.pass_request(request, succ_ip, succ_port)
             else:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                    sock.settimeout(10)  
                     sock.connect((target_ip, target_port))
-                    sock.send(json.dumps(request).encode())
                     print(f"📤 Sent request to {target_ip}:{target_port}")
+                    sock.send(json.dumps(request).encode())
+                    sock.shutdown(socket.SHUT_WR) 
         except Exception as e:
             print(f"❌ Failed to send request to {target_ip}:{target_port}: {e}")
 

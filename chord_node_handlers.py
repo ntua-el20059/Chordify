@@ -113,20 +113,21 @@ class ChordNodeHandlers(ChordNodeCore):
     def handle_insertion_request(self, request):
         """Handle an insertion request."""
         if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
-        self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
+        self.node_id < request['key_hash'] < self.successor["node_id"] or  # Normal case
         (self.successor["node_id"] < self.node_id and  # Wrap-around case
-        (request['key'] > self.node_id or request['key'] < self.successor["node_id"])) and request["times_copied"]==0) or
+        (request['key_hash'] > self.node_id or request['key_hash'] < self.successor["node_id"])) and request["times_copied"]==0) or
         0<request['times_copied']<self.replication_factor):
             request['times_copied']+=1
 
 
-            self.insert_into_mongo(request['key'], request['value'])
+            self.insert_into_mongodb(request['key'], request['key_hash'], request['value'])
 
 
             if request['times_copied']==self.replication_factor and self.consistency_type=="linearizability":
                 response = {
                     "type": "insertion_response",
                     "key": request['key'],
+                    "key_hash": request['key_hash'],
                     "inserted": True
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
@@ -134,6 +135,7 @@ class ChordNodeHandlers(ChordNodeCore):
                 response = {
                     "type": "insertion_response",
                     "key": request['key'],
+                    "key_hash": request['key_hash'],
                     "inserted": True
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
@@ -143,9 +145,9 @@ class ChordNodeHandlers(ChordNodeCore):
             # Forward the request to the successor
             self.pass_request(request)
     
-    def insert_into_mongo(self, key, value):
+    def insert_into_mongodb(self, key, key_hash, value):
         """Insert a key-value pair into the MongoDB collection."""
-        self.collection.insert_one({"key": f"{key}", "value": value})
+        self.collection.insert_one({"key":key, "key_hash": f"{key_hash}", "value": value})
 
     def handle_query_request(self, request):
         if self.consistency_type=="eventual":
@@ -157,13 +159,14 @@ class ChordNodeHandlers(ChordNodeCore):
     def handle_query_request_eventual_consistency(self, request):
         """Handle a query request."""
         if (self.successor["node_id"] == self.node_id or  # Bootstrap node case
-            self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
+            self.node_id < request['key_hash'] < self.successor["node_id"] or  # Normal case
             (self.successor["node_id"] < self.node_id and  # Wrap-around case
-            (request['key'] > self.node_id or request['key'] < self.successor["node_id"]))):
+            (request['key_hash'] > self.node_id or request['key_hash'] < self.successor["node_id"]))):
             response = {
                 "type": "query_response",
                 "key": request['key'],
-                "value": self.query_mongodb(request['key'])
+                "key_hash": request['key_hash'],
+                "value": self.query_mongodb(request['key_hash'])
             }
             self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
         else:
@@ -172,16 +175,17 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_query_request_linearizability(self, request):
         if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
-        self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
+        self.node_id < request['key_hash'] < self.successor["node_id"] or  # Normal case
         (self.successor["node_id"] < self.node_id and  # Wrap-around case
-        (request['key'] > self.node_id or request['key'] < self.successor["node_id"])) and request["times_copied"]==0) or
+        (request['key_hash'] > self.node_id or request['key_hash'] < self.successor["node_id"])) and request["times_copied"]==0) or
         0<request['times_copied']<self.replication_factor):
             request['times_copied']+=1
             if request['times_copied']==self.replication_factor:
                 response = {
                     "type": "query_response",
                     "key": request['key'],
-                    "value": self.query_mongodb(request['key'])
+                    "key_hash": request['key_hash'],
+                    "value": self.query_mongodb(request['key_hash'])
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
             elif request['times_copied']<self.replication_factor:
@@ -190,8 +194,8 @@ class ChordNodeHandlers(ChordNodeCore):
             # Forward the request to the successor
             self.pass_request(request)
     
-    def query_mongodb(self, key):
-        query = self.collection.find_one({"key": f"{key}"})
+    def query_mongodb(self, key_hash):
+        query = self.collection.find_one({"key_hash": f"{key_hash}"})
         return query["value"]
 
     def handle_query_all_request(self, request):
@@ -212,20 +216,21 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_deletion_request(self, request):
         if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
-        self.node_id < request['key'] < self.successor["node_id"] or  # Normal case
+        self.node_id < request['key_hash'] < self.successor["node_id"] or  # Normal case
         (self.successor["node_id"] < self.node_id and  # Wrap-around case
-        (request['key'] > self.node_id or request['key'] < self.successor["node_id"])) and request["times_copied"]==0) or
+        (request['key_hash'] > self.node_id or request['key_hash'] < self.successor["node_id"])) and request["times_copied"]==0) or
         0<request['times_copied']<self.replication_factor):
             request['times_copied']+=1
 
 
-            self.remove_from_mongodb(request['key'])
+            self.remove_from_mongodb(request['key_hash'])
 
 
             if request['times_copied']==self.replication_factor and self.consistency_type=="linearizability":
                 response = {
                     "type": "deletion_response",
                     "key": request['key'],
+                    "key_hash": request['key_hash'],
                     "inserted": True
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
@@ -233,6 +238,7 @@ class ChordNodeHandlers(ChordNodeCore):
                 response = {
                     "type": "deletion_response",
                     "key": request['key'],
+                    "key_hash": request['key_hash'],
                     "inserted": True
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
@@ -242,9 +248,9 @@ class ChordNodeHandlers(ChordNodeCore):
             # Forward the request to the successor
             self.pass_request(request)
     
-    def remove_from_mongodb(self, key):
+    def remove_from_mongodb(self, key_hash):
         """Remove a key from mongo collection."""
-        print("AAAAA FANH SWSE ME")
+        self.collection.delete_one({"key_hash": f"{key_hash}"})
     
     def handle_overlay_request(self, request):
         """Handle an overlay request."""

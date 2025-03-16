@@ -127,7 +127,8 @@ class ChordNodeOperations(ChordNodeHandlers):
             print(f"🔍 Querying for key {key} with hash {key_hash}")
             request = {
                 "type": "insertion",
-                "key": key_hash,
+                "key": key,
+                "key_hash": key_hash,
                 "value": key if value is None else value,
                 "sender_ip": self.ip,
                 "sender_port": self.port,
@@ -168,7 +169,8 @@ class ChordNodeOperations(ChordNodeHandlers):
             print(f"🔍 Querying for key {key} with hash {key_hash}")
             request = {
                 "type": "query",
-                "key": key_hash,
+                "key": key,
+                "key_hash": key_hash,
                 "sender_ip": self.ip,
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
@@ -251,22 +253,21 @@ class ChordNodeOperations(ChordNodeHandlers):
             target_ip,target_port = self.successor["ip"], self.successor["port"]
             while True:
                 self.pass_request(request,target_ip,target_port)
-                print("🕒 Waiting for response...")
-                conn, _ = temp_socket.accept()
-                data = conn.recv(1024).decode()
                 try:    
+                    print("🕒 Waiting for response...")
+                    conn, _ = temp_socket.accept()
+                    data = conn.recv(1024).decode()
                     if data:
                         response = json.loads(data)
-                        if response:
-                            characteristics=response["node_characteristics"]
-                            if characteristics["node_id"]==self.node_id:
-                                conn.close()
-                                return node_list
-                            target_ip, target_port = characteristics["ip"], characteristics["port"]
-                            node_list.append(characteristics)
-                    print("No data")
+                        next_node=response["next"]
+                        if response["node_id"]==self.node_id:
+                            conn.close()
+                            return node_list
+                        target_ip, target_port = next_node["ip"], next_node["port"]
+                        node_list.append(response["node_characteristics"])
+                    print("Error: No data received")
                     conn.close()
-                    return []
+                    return node_list
                 except socket.timeout:
                         print("⏳ Timeout: No response received within the timeout period.")
                         conn.close()
@@ -287,7 +288,8 @@ class ChordNodeOperations(ChordNodeHandlers):
             print(f"🔍 Querying for key {key} with hash {key_hash}")
             request = {
                 "type": "deletion",
-                "key": key_hash,
+                "key": key,
+                "key_hash": key_hash,
                 "sender_ip": self.ip,
                 "sender_port": self.port,
                 "sender_temp_port": temp_port,
