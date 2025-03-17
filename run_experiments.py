@@ -80,7 +80,7 @@ def main():
 
     # Validate arguments
     if args.node_number != 0:
-        if not args.bootstrap_ip or not args.bootstrap_port:
+        if not args.bootstrap_ip:
             print("Error: --bootstrap_ip and --bootstrap_port are required for non-bootstrap nodes.")
             sys.exit(1)
     
