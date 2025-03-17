@@ -66,9 +66,11 @@ def main():
 
     for _ in range(3):
         time.sleep(10)
-        for i in range(10):
+        for i in range(5):
             hostname = f"{args.base_hostname}{i+1}"
-            target_port = 6000 + i
+            target_port = 6000 + 2*i
+            trigger_signal(hostname, target_port)
+            target_port = 6000 + 2*i+1
             trigger_signal(hostname, target_port)
 
 
