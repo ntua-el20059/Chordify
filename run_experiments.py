@@ -74,7 +74,7 @@ def main():
     parser.add_argument("--consistency", choices=["linearizability", "eventual"], default="linearizability", help="Consistency model")
     parser.add_argument("--replication", type=int, default=1, help="Replication factor (k)")
     parser.add_argument("--bootstrap_ip", help="Bootstrap node IP (required if node_number != 0)")
-    parser.add_argument("--bootstrap_port", type=int, default="5000", help="Bootstrap node port (default: 5000)")
+    parser.add_argument("--bootstrap_port", type=int, default=5000, help="Bootstrap node port (default: 5000)")
     parser.add_argument("--signal_port", type=int, required=True, help="Port to listen for signals")
     args = parser.parse_args()
 
