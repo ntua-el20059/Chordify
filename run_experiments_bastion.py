@@ -44,7 +44,7 @@ def ssh_execute_commands(hostname, commands):
 def main():
     # Parse command-line arguments for the base hostname
     parser = argparse.ArgumentParser(description="SSH Experiment Runner for Chord Nodes")
-    parser.add_argument('--base_hostname', type=str, default="team3-vm", help="Base hostname for VMs (e.g., team3-vm)")
+    parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team3-vm)")
     args = parser.parse_args()
 
     # Loop over the range of VMs (team3-vm1 to team3-vm5)
