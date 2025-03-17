@@ -7,8 +7,8 @@ import time
 
 def ssh_execute_commands(hostname, commands):
     try:
-        command_str = "; ".join(commands)
-        ssh_command = f"ssh -t {hostname} '{command_str}'"
+        command_str = "\n".join(commands)
+        ssh_command = f"ssh -t {hostname} << EOF\n{command_str}\nEOF"
         print(f"Executing on {hostname}: {ssh_command}")
         
         result = subprocess.run(ssh_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
