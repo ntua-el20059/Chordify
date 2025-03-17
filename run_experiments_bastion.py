@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import subprocess
+import socket
 import sys
 import time
 
@@ -19,6 +20,20 @@ def execute_command(hostname, command):
     except subprocess.CalledProcessError as e:
         print(f"Failed to execute commands on {hostname}: {e.stderr.decode()}")
         return False
+
+def trigger_signal(host, port, message="go"):
+    """
+    Connect to the given host and port and send a signal message.
+    
+    This function acts as a client that triggers the server's wait_for_signal() function.
+    """
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((host, port))
+            s.sendall(message.encode())
+            print(f"Sent signal '{message}' to {host}:{port}")
+    except Exception as e:
+        print(f"Error triggering signal: {e}")
 
 
 def main():
@@ -48,6 +63,12 @@ def main():
         if not success:
             print(f"Failed to complete tasks on {hostname}. Exiting...")
             sys.exit(1)
+
+        for _ in range(3):
+            time.sleep(10)
+            for i in range(10):
+                target_port = 6000 + i
+                trigger_signal(hostname, target_port)
 
 
 if __name__ == "__main__":
