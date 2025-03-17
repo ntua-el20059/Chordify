@@ -124,7 +124,7 @@ def main():
     time.sleep(1)  # Allow the server time to initialize
 
     # Clear or create the output file at the start
-    with open(output_file, "w") as f:
+    with open(output_file, "w+") as f:
         f.write("Experiment Results\n\n")
 
     # Run the experiments in sequence, waiting for signals
