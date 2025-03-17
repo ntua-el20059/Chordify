@@ -151,7 +151,9 @@ class ChordNodeHandlers(ChordNodeCore):
         old_value = self.query_mongodb(key_hash)
         if old_value is not None:
             self.remove_from_mongodb(key_hash)
-        self.collection.insert_one({"key":key, "key_hash": f"{key_hash}", "value": old_value+value})
+            self.collection.insert_one({"key":key, "key_hash": f"{key_hash}", "value": old_value+value})
+        else:
+            self.collection.insert_one({"key":key, "key_hash": f"{key_hash}", "value": value})
 
     def handle_query_request(self, request):
         if self.consistency_type=="eventual":
