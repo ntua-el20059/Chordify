@@ -64,12 +64,12 @@ def main():
             print(f"Failed to complete tasks on {hostname}. Exiting...")
             sys.exit(1)
 
-        for _ in range(3):
-            time.sleep(10)
-            for i in range(10):
-                hostname = f"{args.base_hostname}{i+1}"
-                target_port = 6000 + i
-                trigger_signal(hostname, target_port)
+    for _ in range(3):
+        time.sleep(10)
+        for i in range(10):
+            hostname = f"{args.base_hostname}{i+1}"
+            target_port = 6000 + i
+            trigger_signal(hostname, target_port)
 
 
 if __name__ == "__main__":
