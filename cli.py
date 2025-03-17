@@ -67,7 +67,7 @@ def main():
             "ip": args.ip,
             "port": args.port,
         }
-        node = ChordNode(port=args.port, bootstrap_node=bootstrap_node)
+        node = ChordNode(bootstrap_node=bootstrap_node)
         print(f"🚀 Node started at {node.ip}:{node.port}, ID: {node.node_id}")
 
     # Start the CLI and server

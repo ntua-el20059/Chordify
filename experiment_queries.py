@@ -36,7 +36,7 @@ def main():
             sys.exit(1)
         bootstrap_node = {"ip": args.ip, "port": args.port}
     
-    node = ChordNode(port=args.port, bootstrap_node=bootstrap_node)
+    node = ChordNode(bootstrap_node=bootstrap_node)
     node.replication_factor = args.replication
     node.consistency_type = args.consistency
 
