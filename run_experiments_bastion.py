@@ -5,6 +5,10 @@ import socket
 import sys
 import time
 
+def read_ips(filename):
+    """Read IP addresses from a file."""
+    with open(filename, 'r') as file:
+        return [line.strip() for line in file]
 
 def execute_command(hostname, command):
     try:
@@ -35,11 +39,13 @@ def trigger_signal(host, port, message="go"):
     except Exception as e:
         print(f"Error triggering signal: {e}")
 
-
 def main():
     parser = argparse.ArgumentParser(description="SSH Experiment Runner for Chord Nodes")
     parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team3-vm)")
     args = parser.parse_args()
+
+    # Read IPs from file
+    IPs = read_ips("ips.txt")
 
     for i in range(5):
         hostname = f"{args.base_hostname}{i+1}"
@@ -48,16 +54,17 @@ def main():
         signal_port1 = 6000 + node1
         signal_port2 = 6000 + node2
 
-        # Key Fix: Combine the nohup commands into one string without semicolon after &
-        command=(f"ssh {hostname}<<EOF\n" +
-            "   cd Chordify\n"+
-            "   git pull\n"+
-            f"  nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 & \n"+
-            "   sleep 1\n"+
-            f"  nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 & "+
-            "   sleep 1\n"+
-            "   exit\nEOF")
-        
+        command = f"""
+        ssh {hostname} <<EOF
+        cd Chordify
+        git pull
+        nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 &
+        sleep 1
+        nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 &
+        sleep 1
+        exit
+        EOF
+        """
 
         success = execute_command(hostname, command)
         if not success:
@@ -67,12 +74,11 @@ def main():
     for _ in range(3):
         time.sleep(10)
         for i in range(5):
-            hostname = f"{args.base_hostname}{i+1}"
-            target_port = 6000 + 2*i
-            trigger_signal(hostname, target_port)
-            target_port = 6000 + 2*i+1
-            trigger_signal(hostname, target_port)
-
+            ip = IPs[i]
+            target_port1 = 6000 + 2*i
+            target_port2 = 6000 + 2*i + 1
+            trigger_signal(ip, target_port1)
+            trigger_signal(ip, target_port2)
 
 if __name__ == "__main__":
     main()
