@@ -7,7 +7,7 @@ import time
 
 def execute_command(hostname, command):
     try:
-        print(f"Executing on {hostname}: {command}")
+        print(f"Executing on {hostname}:\n{command}")
         result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         if result.stdout:
@@ -36,11 +36,10 @@ def main():
         # Key Fix: Combine the nohup commands into one string without semicolon after &
         command=(f"ssh -t {hostname}<<EOF\n" +
             "   cd Chordify\n"+
-            "   git pull origin main"+
             f"  nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 & \n"+
             "   sleep 1\n"+
             f"  nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 & "+
-            "   sleep 1"+
+            "   sleep 1\n"+
             "   exit\nEOF")
         
 
