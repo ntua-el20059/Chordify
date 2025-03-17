@@ -17,12 +17,12 @@ declare -A NODES=(
     ["NODE9_VM5"]="10.0.10.252:10000"
 )
 
-# SSH options to bypass host key verification
-SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+# SSH options to bypass host key verification, force non-interactive mode, and use the team key.
+SSH_OPTS="-i ~/.ssh/team_key.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes"
 
 # Start the bootstrap node using its IP directly.
 echo "Starting bootstrap node on $BOOTSTRAP_IP:$BOOTSTRAP_PORT..."
-ssh $SSH_OPTS -t $BOOTSTRAP_IP << EOF
+ssh $SSH_OPTS ubuntu@$BOOTSTRAP_IP << EOF
     cd ~/Chordify
     nohup python3 cli.py --bootstrap --port $BOOTSTRAP_PORT > /dev/null 2>&1 &
     exit
@@ -33,7 +33,7 @@ echo "Bootstrap node started on $BOOTSTRAP_IP:$BOOTSTRAP_PORT."
 for NODE in "${!NODES[@]}"; do
     IFS=':' read -r NODE_IP NODE_PORT <<< "${NODES[$NODE]}"
     echo "Starting $NODE on $NODE_IP at port $NODE_PORT..."
-    ssh $SSH_OPTS -t $NODE_IP << EOF
+    ssh $SSH_OPTS ubuntu@$NODE_IP << EOF
         cd ~/Chordify
         nohup python3 cli.py -ip $BOOTSTRAP_IP --port $NODE_PORT > /dev/null 2>&1 &
         exit
