@@ -39,6 +39,7 @@ def trigger_signal(host, port, message="go"):
     except Exception as e:
         print(f"Error triggering signal: {e}")
 
+
 def main():
     parser = argparse.ArgumentParser(description="SSH Experiment Runner for Chord Nodes")
     parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team3-vm)")
@@ -78,6 +79,16 @@ def main():
             target_port1 = 6000 + 2*i
             target_port2 = 6000 + 2*i + 1
             trigger_signal(ip, target_port1)
+            trigger_signal(ip, target_port2)
+    
+    time.sleep(9)
+    for i in range(4,-1,-1):
+            ip = IPs[i]
+            target_port1 = 6000 + 2*i+1
+            target_port2 = 6000 + 2*i
+            time.sleep(1)
+            trigger_signal(ip, target_port1)
+            time.sleep(1)
             trigger_signal(ip, target_port2)
 
 if __name__ == "__main__":

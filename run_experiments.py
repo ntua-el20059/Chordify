@@ -45,6 +45,7 @@ def run_requests(file_path, node, output_file):
     """Run mixed request operations from the specified file and write completion to output_file."""
     with open(file_path, "r") as f:
         lines = [line.strip() for line in f if line.strip()]
+        start_time = time.time()
     for line in lines:
         parts = [p.strip() for p in line.split(',')]
         op = parts[0].lower()
@@ -55,16 +56,18 @@ def run_requests(file_path, node, output_file):
         elif op == "query":
             key = parts[1]
             node.query(key)
-        time.sleep(0.1)  # Slight delay between operations
+        end_time = time.time()
+        duration = end_time - start_time
+        throughput = len(lines) / duration if duration > 0 else 0
     with open(output_file, "a") as f:
-        f.write("[Requests Experiment] All operations completed.\n")
+        f.write(f"[Requests Experiment] {len(lines)} requests in {duration:.2f} seconds, throughput: {throughput:.2f} requests/sec\n")
 
 def wait_for_signal(listening_socket, node):
     """Wait for a 'go' signal from an external coordinator with a timeout."""
     print(f"Waiting for signal on port {listening_socket.getsockname()[1]}...")
     listening_socket.settimeout(30)  # Set a 10-second timeout
     try:
-        connection, address = listening_socket.accept()
+        connection, _ = listening_socket.accept()
         data = connection.recv(1024).decode().strip()
         print(f"Received signal: {data}")
         connection.close()
@@ -146,8 +149,11 @@ def main():
     wait_for_signal(listening_socket, node)
     run_requests(requests_file, node, output_file)
 
+
     # Clean up
+    wait_for_signal(listening_socket, node)
     listening_socket.close()
+    node.depart()
 
 if __name__ == "__main__":
     main()
