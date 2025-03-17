@@ -98,13 +98,6 @@ def main():
     
     args = parser.parse_args()
 
-    # If trigger flag is set, send a signal and exit
-    if args.trigger:
-        if not args.trigger_host or not args.trigger_port:
-            print("Error: --trigger_host and --trigger_port must be specified when using --trigger")
-            sys.exit(1)
-        trigger_signal(args.trigger_host, args.trigger_port)
-        sys.exit(0)
     
     # Validate arguments for node operation
     if args.node_number is None or args.signal_port is None:
