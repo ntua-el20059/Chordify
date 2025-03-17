@@ -4,6 +4,8 @@ import threading
 import sys
 import argparse
 import socket
+import os
+from pathlib import Path
 from chord_node import ChordNode
 
 def run_inserts(file_path, node, output_file):
@@ -82,13 +84,24 @@ def main():
             print("Error: --bootstrap_ip and --bootstrap_port are required for non-bootstrap nodes.")
             sys.exit(1)
     
-
     # Construct file names based on node_number
     node_number = args.node_number
     insert_file = f"./inserts/insert_0{node_number}.txt"
     query_file = f"./queries/query_0{node_number}.txt"
     requests_file = f"./requests/requests_0{node_number}.txt"
     output_file = f"./node0{node_number}/node_0{node_number}_{args.consistency}_{args.replication}.out"
+
+    # Create directories if they don't exist
+    Path("./inserts").mkdir(parents=True, exist_ok=True)
+    Path("./queries").mkdir(parents=True, exist_ok=True)
+    Path("./requests").mkdir(parents=True, exist_ok=True)
+    Path(f"./node0{node_number}").mkdir(parents=True, exist_ok=True)
+
+    # Create files if they don't exist
+    Path(insert_file).touch(exist_ok=True)
+    Path(query_file).touch(exist_ok=True)
+    Path(requests_file).touch(exist_ok=True)
+    Path(output_file).touch(exist_ok=True)
 
     # Configure bootstrap node
     bootstrap_node = {"ip": args.bootstrap_ip, "port": args.bootstrap_port} if args.node_number != 0 else None
@@ -103,7 +116,7 @@ def main():
         sys.exit(1)
 
     # Initialize and configure the Chord node
-    node = ChordNode(bootstrap_node=bootstrap_node,replication_factor=args.replication,consistency_type=args.consistency)
+    node = ChordNode(bootstrap_node=bootstrap_node, replication_factor=args.replication, consistency_type=args.consistency)
 
     # Start the node's server in a background thread
     server_thread = threading.Thread(target=node.start_server, daemon=True)
