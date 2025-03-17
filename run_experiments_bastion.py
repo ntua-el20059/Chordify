@@ -1,61 +1,55 @@
 #!/usr/bin/env python3
 import argparse
-import paramiko
+import subprocess
 import sys
 import time
 
 
-def ssh_execute_commands(hostname, username, commands, port=22, timeout=10):
+def ssh_execute_commands(hostname, commands):
     """
-    Establish an SSH connection to a host and execute a list of commands.
+    Execute a list of commands on a remote host using the `ssh` command.
     
     Args:
-        hostname (str): The IP or hostname of the target machine.
-        username (str): The SSH username.
-        commands (list): List of commands to execute.
-        port (int): SSH port (default: 22).
-        timeout (int): Timeout for the SSH connection in seconds.
+        hostname (str): The hostname of the target machine (e.g., team3-vm1).
+        commands (list): List of commands to execute on the remote host.
     
     Returns:
         bool: True if successful, False otherwise.
     """
     try:
-        # Initialize the SSH client
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Automatically add host key
-        print(f"Connecting to {hostname} as {username}...")
-        client.connect(hostname=hostname, username=username, port=port, timeout=timeout)
-
-        # Open an interactive shell session
-        for command in commands:
-            print(f"Executing on {hostname}: {command}")
-            stdin, stdout, stderr = client.exec_command(command)
-            exit_status = stdout.channel.recv_exit_status()  # Wait for the command to complete
-            if exit_status != 0:
-                print(f"Error executing '{command}' on {hostname}: {stderr.read().decode()}")
-            else:
-                print(f"Output from {hostname}: {stdout.read().decode()}")
-
-        # Close the connection
-        client.close()
-        print(f"Disconnected from {hostname}")
+        # Combine the commands into a single string to execute on the remote host
+        command_str = "; ".join(commands)
+        
+        # Construct the SSH command
+        ssh_command = f"ssh {hostname} '{command_str}'"
+        
+        print(f"Executing on {hostname}: {ssh_command}")
+        
+        # Run the SSH command using subprocess
+        result = subprocess.run(ssh_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        # Print the output
+        if result.stdout:
+            print(f"Output from {hostname}:\n{result.stdout.decode()}")
+        if result.stderr:
+            print(f"Errors from {hostname}:\n{result.stderr.decode()}")
+        
         return True
 
-    except Exception as e:
-        print(f"Failed to connect or execute commands on {hostname}: {e}")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to execute commands on {hostname}: {e.stderr.decode()}")
         return False
 
 
 def main():
-    # Parse command-line arguments for IPs and username
+    # Parse command-line arguments for the base hostname
     parser = argparse.ArgumentParser(description="SSH Experiment Runner for Chord Nodes")
-    parser.add_argument('--username', type=str, required=True, help="SSH username for the VMs")
-    parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team_3-vm)")
+    parser.add_argument('--base_hostname', type=str, default="team3-vm", help="Base hostname for VMs (e.g., team3-vm)")
     args = parser.parse_args()
 
-    # Loop over the range of VMs (team_3-vm0 to team_3-vm4)
+    # Loop over the range of VMs (team3-vm1 to team3-vm5)
     for i in range(5):
-        hostname = f"{args.base_hostname}{i}"  # e.g., team_3-vm0, team_3-vm1, etc.
+        hostname = f"{args.base_hostname}{i+1}"  # e.g., team3-vm1, team3-vm2, etc.
         node1 = 2 * i  # Even node number: 0, 2, 4, 6, 8
         node2 = 2 * i + 1  # Odd node number: 1, 3, 5, 7, 9
         signal_port1 = 6000 + node1  # e.g., 6000, 6002, ..., 6008
@@ -71,7 +65,6 @@ def main():
         # Execute the commands via SSH
         success = ssh_execute_commands(
             hostname=hostname,
-            username=args.username,
             commands=commands
         )
 
