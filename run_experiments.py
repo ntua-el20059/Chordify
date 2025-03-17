@@ -59,13 +59,22 @@ def run_requests(file_path, node, output_file):
     with open(output_file, "a") as f:
         f.write("[Requests Experiment] All operations completed.\n")
 
-def wait_for_signal(listening_socket):
-    """Wait for a 'go' signal from an external coordinator."""
+def wait_for_signal(listening_socket, node):
+    """Wait for a 'go' signal from an external coordinator with a timeout."""
     print(f"Waiting for signal on port {listening_socket.getsockname()[1]}...")
-    connection, address = listening_socket.accept()
-    data = connection.recv(1024).decode().strip()
-    print(f"Received signal: {data}")
-    connection.close()
+    listening_socket.settimeout(10)  # Set a 10-second timeout
+    try:
+        connection, address = listening_socket.accept()
+        data = connection.recv(1024).decode().strip()
+        print(f"Received signal: {data}")
+        connection.close()
+    except socket.timeout:
+        print("Timeout waiting for signal after 10 seconds. Departing node and shutting down.")
+        node.depart()  # Call the node's depart method
+        listening_socket.close()  # Close the socket
+        sys.exit(1)  # Exit the program
+    finally:
+        listening_socket.settimeout(None)  # Reset timeout for future calls
 
 def main():
     # Set up command-line argument parsing
@@ -128,13 +137,13 @@ def main():
         f.write("Experiment Results\n\n")
 
     # Run the experiments in sequence, waiting for signals
-    wait_for_signal(listening_socket)
+    wait_for_signal(listening_socket, node)
     run_inserts(insert_file, node, output_file)
 
-    wait_for_signal(listening_socket)
+    wait_for_signal(listening_socket, node)
     run_queries(query_file, node, output_file)
 
-    wait_for_signal(listening_socket)
+    wait_for_signal(listening_socket, node)
     run_requests(requests_file, node, output_file)
 
     # Clean up
