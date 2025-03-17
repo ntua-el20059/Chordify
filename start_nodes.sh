@@ -19,10 +19,9 @@ declare -A NODES=(
 
 # Start the bootstrap node using its IP directly.
 echo "Starting bootstrap node on $BOOTSTRAP_IP:$BOOTSTRAP_PORT..."
-ssh -t $BOOTSTRAP_IP << 'EOF'
-    # Change to the Chordify directory if needed
+ssh -t $BOOTSTRAP_IP << EOF
     cd ~/Chordify
-    nohup python3 cli.py --bootstrap --port '"$BOOTSTRAP_PORT"' > /dev/null 2>&1 &
+    nohup python3 cli.py --bootstrap --port $BOOTSTRAP_PORT > /dev/null 2>&1 &
     exit
 EOF
 echo "Bootstrap node started on $BOOTSTRAP_IP:$BOOTSTRAP_PORT."
