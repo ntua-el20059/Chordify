@@ -8,7 +8,7 @@ import time
 def ssh_execute_commands(hostname, commands):
     try:
         command_str = "; ".join(commands)
-        ssh_command = f"ssh {hostname} '{command_str}'"
+        ssh_command = f"ssh -t {hostname} '{command_str}'"
         print(f"Executing on {hostname}: {ssh_command}")
         
         result = subprocess.run(ssh_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -39,15 +39,14 @@ def main():
         # Key Fix: Combine the nohup commands into one string without semicolon after &
         commands = [
             "cd Chordify",
-            f"nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --signal_port {signal_port1} > /dev/null 2>&1 & "
-            f"nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --signal_port {signal_port2} > /dev/null 2>&1 & "
+            f"nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --signal_port {signal_port1} > stdout 2>&1 & "
+            f"nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --signal_port {signal_port2} > stdout 2>&1 & "
         ]
 
         success = ssh_execute_commands(hostname, commands)
         if not success:
             print(f"Failed to complete tasks on {hostname}. Exiting...")
             sys.exit(1)
-        time.sleep(1)
 
 
 if __name__ == "__main__":
