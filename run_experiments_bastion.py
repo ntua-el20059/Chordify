@@ -5,13 +5,10 @@ import sys
 import time
 
 
-def ssh_execute_commands(hostname, commands):
+def execute_command(hostname, command):
     try:
-        command_str = "\n".join(commands)
-        ssh_command = f"ssh -t {hostname} << EOF\n{command_str}\nEOF"
-        print(f"Executing on {hostname}: {ssh_command}")
-        
-        result = subprocess.run(ssh_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f"Executing on {hostname}: {command}")
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         if result.stdout:
             print(f"Output from {hostname}:\n{result.stdout.decode()}")
@@ -37,16 +34,17 @@ def main():
         signal_port2 = 6000 + node2
 
         # Key Fix: Combine the nohup commands into one string without semicolon after &
-        commands = [
-            "cd Chordify",
-            "git pull origin main",
-            f"nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 & ",
-            "sleep 1",
-            f"nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 & ",
-            "sleep 1"
-        ]
+        command=(f"ssh -t {hostname}<<EOF" +
+            "cd Chordify\n"+
+            "git pull origin main"+
+            f"nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 & \n"+
+            "sleep 1\n"+
+            f"nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 & "+
+            "sleep 1"+
+            "exit\nEOF")
+        
 
-        success = ssh_execute_commands(hostname, commands)
+        success = execute_command(hostname, command)
         if not success:
             print(f"Failed to complete tasks on {hostname}. Exiting...")
             sys.exit(1)
