@@ -17,27 +17,26 @@ declare -A NODES=(
     ["NODE9_VM5"]="10.0.10.252:10000"
 )
 
-# Start the bootstrap node
+# Start the bootstrap node using its IP directly.
 echo "Starting bootstrap node on $BOOTSTRAP_IP:$BOOTSTRAP_PORT..."
-ssh -t team_3-vm1 << EOF
-    nohup python3 cli.py --bootstrap --port $BOOTSTRAP_PORT > /dev/null 2>&1 &
+ssh -t $BOOTSTRAP_IP << 'EOF'
+    # Change to the Chordify directory if needed
+    cd ~/Chordify
+    nohup python3 cli.py --bootstrap --port '"$BOOTSTRAP_PORT"' > /dev/null 2>&1 &
     exit
 EOF
 echo "Bootstrap node started on $BOOTSTRAP_IP:$BOOTSTRAP_PORT."
 
-# Start the other nodes
+# Start the other nodes using their IP addresses directly.
 for NODE in "${!NODES[@]}"; do
-    IFS=':' read -r IP PORT <<< "${NODES[$NODE]}"
-    # Extract the VM name from the node identifier (e.g., VM1, VM2, etc.)
-    VM=$(echo "$NODE" | sed -E 's/NODE[0-9]_//')
-    VM="team_3-${VM,,}"  # Convert to lowercase (e.g., team_3-vm1, team_3-vm2, etc.)
-    
-    echo "Starting $NODE on $VM at $IP:$PORT..."
-    ssh -t $VM << EOF
-        nohup python3 cli.py -ip $BOOTSTRAP_IP --port $PORT > /dev/null 2>&1 &
+    IFS=':' read -r NODE_IP NODE_PORT <<< "${NODES[$NODE]}"
+    echo "Starting $NODE on $NODE_IP at port $NODE_PORT..."
+    ssh -t $NODE_IP << EOF
+        cd ~/Chordify
+        nohup python3 cli.py -ip $BOOTSTRAP_IP --port $NODE_PORT > /dev/null 2>&1 &
         exit
 EOF
-    echo "$NODE started on $VM at $IP:$PORT."
+    echo "$NODE started on $NODE_IP at port $NODE_PORT."
 done
 
 echo "All nodes have been started."
