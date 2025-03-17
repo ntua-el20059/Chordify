@@ -17,12 +17,14 @@ declare -A NODES=(
     ["NODE9_VM5"]="10.0.10.252:10000"
 )
 
+# SSH options to bypass host key verification
+SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
 # Start the bootstrap node using its IP directly.
 echo "Starting bootstrap node on $BOOTSTRAP_IP:$BOOTSTRAP_PORT..."
-ssh -t $BOOTSTRAP_IP << 'EOF'
-    # Change to the Chordify directory if needed
+ssh $SSH_OPTS -t $BOOTSTRAP_IP << EOF
     cd ~/Chordify
-    nohup python3 cli.py --bootstrap --port '"$BOOTSTRAP_PORT"' > /dev/null 2>&1 &
+    nohup python3 cli.py --bootstrap --port $BOOTSTRAP_PORT > /dev/null 2>&1 &
     exit
 EOF
 echo "Bootstrap node started on $BOOTSTRAP_IP:$BOOTSTRAP_PORT."
@@ -31,7 +33,7 @@ echo "Bootstrap node started on $BOOTSTRAP_IP:$BOOTSTRAP_PORT."
 for NODE in "${!NODES[@]}"; do
     IFS=':' read -r NODE_IP NODE_PORT <<< "${NODES[$NODE]}"
     echo "Starting $NODE on $NODE_IP at port $NODE_PORT..."
-    ssh -t $NODE_IP << EOF
+    ssh $SSH_OPTS -t $NODE_IP << EOF
         cd ~/Chordify
         nohup python3 cli.py -ip $BOOTSTRAP_IP --port $NODE_PORT > /dev/null 2>&1 &
         exit
