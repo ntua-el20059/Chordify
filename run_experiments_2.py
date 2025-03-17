@@ -57,11 +57,13 @@ def run_requests(file_path, node, output_file):
     with open(output_file, "a") as f:
         f.write("[Requests Experiment] All operations completed.\n")
 
-def wait_for_signal(listening_socket):
+def wait_for_signal(listening_socket, node_number):
     """Wait for a 'go' signal from an external coordinator."""
     print(f"Waiting for signal on port {listening_socket.getsockname()[1]}...")
     connection, address = listening_socket.accept()
     data = connection.recv(1024).decode().strip()
+    if node_number == 0:
+        trigger_signal(address[0], address[1])
     print(f"Received signal: {data}")
     connection.close()
 
@@ -150,13 +152,13 @@ def main():
     # Run the experiments in sequence, waiting for signals
     if args.node_number != 0:
         trigger_signal(args.trigger_host, args.trigger_port)
-    wait_for_signal(listening_socket)
+    wait_for_signal(listening_socket, args.node_number)
     run_inserts(insert_file, node, output_file)
 
-    wait_for_signal(listening_socket)
+    wait_for_signal(listening_socket, args.node_number)
     run_queries(query_file, node, output_file)
 
-    wait_for_signal(listening_socket)
+    wait_for_signal(listening_socket, args.node_number)
     run_requests(requests_file, node, output_file)
 
     # Clean up
