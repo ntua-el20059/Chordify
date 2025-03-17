@@ -88,7 +88,7 @@ def main():
     insert_file = f"./inserts/insert_0{node_number}.txt"
     query_file = f"./queries/query_0{node_number}.txt"
     requests_file = f"./requests/requests_0{node_number}.txt"
-    output_file = f"node_0{node_number}_{args.consistency}_{args.replication}.out"
+    output_file = f"./node0{node_number}/node_0{node_number}_{args.consistency}_{args.replication}.out"
 
     # Configure bootstrap node
     bootstrap_node = {"ip": args.bootstrap_ip, "port": args.bootstrap_port} if args.node_number != 0 else None
