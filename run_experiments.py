@@ -103,9 +103,7 @@ def main():
         sys.exit(1)
 
     # Initialize and configure the Chord node
-    node = ChordNode(bootstrap_node=bootstrap_node)
-    node.replication_factor = args.replication
-    node.consistency_type = args.consistency
+    node = ChordNode(bootstrap_node=bootstrap_node,replication_factor=args.replication,consistency_type=args.consistency)
 
     # Start the node's server in a background thread
     server_thread = threading.Thread(target=node.start_server, daemon=True)
