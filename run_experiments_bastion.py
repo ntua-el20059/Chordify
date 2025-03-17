@@ -58,8 +58,8 @@ def main():
         # Define the commands to execute on the VM
         commands = [
             "cd Chordify",  # Navigate to the Chordify directory
-            f"nohup python run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --signal_port {signal_port1}",
-            f"nohup python run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --signal_port {signal_port2}"
+            f"nohup ./run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --signal_port {signal_port1}",
+            f"nohup ./run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --signal_port {signal_port2}"
         ]
 
         # Execute the commands via SSH
