@@ -40,7 +40,7 @@ def main():
         commands = [
             "cd Chordify",
             #f"nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --signal_port {signal_port1} > stdout 2>&1 & "
-            f"nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --signal_port {signal_port2} > stdout 2>&1 & "
+            f"nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --signal_port {signal_port2} > node0{node2}.log 2>&1 & "
         ]
 
         success = ssh_execute_commands(hostname, commands)
