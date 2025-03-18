@@ -54,6 +54,7 @@ def run_experiment(base_hostname, consistency, replication):
         command = f"""
         ssh {hostname} <<EOF
         cd Chordify
+        git pull
         nohup python3 run_experiments.py --node_number {node1} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}_{consistency}_{replication}.log 2>&1 &
         sleep 0.25
         nohup python3 run_experiments.py --node_number {node2} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}_{consistency}_{replication}.log 2>&1 &
