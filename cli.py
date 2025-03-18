@@ -61,7 +61,7 @@ def main():
     if args.bootstrap:
         # Start as bootstrap node
         print("🚀 Starting as bootstrap node...")
-        node = ChordNode(bootstrap_node=None, consistency_type=args.c, replication_factor=args.rf)
+        node = ChordNode(bootstrap_node=None, consistency_type=None if not args.c else args.c, replication_factor=None if not args.rf else args.rf)
     else:
         if not args.ip:
             print("❌ Error: Bootstrap node IP is required for non-bootstrap nodes.")
