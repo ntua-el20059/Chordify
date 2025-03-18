@@ -52,16 +52,12 @@ def main():
     parser.add_argument("--bootstrap", action="store_true", help="Start as bootstrap node")
     parser.add_argument("--ip", help="Bootstrap node IP (required if not bootstrap)")
     parser.add_argument("--port", type=int, default=5000, help="Port to use (default: 5000)")
-    #parser add argument for replication factor
-    parser.add_argument("-rf",type = int, help="Bootstrap node IP (required if not bootstrap)")
-    #parser add argument for consistency type
-    parser.add_argument("-c", help="Bootstrap node IP (required if not bootstrap)")
     args = parser.parse_args()
 
     if args.bootstrap:
         # Start as bootstrap node
         print("🚀 Starting as bootstrap node...")
-        node = ChordNode(bootstrap_node=None, consistency_type=None if not args.c else args.c, replication_factor=None if not args.rf else args.rf)
+        node = ChordNode(bootstrap_node=None, consistency_type="linearizability", replication_factor=3)
     else:
         if not args.ip:
             print("❌ Error: Bootstrap node IP is required for non-bootstrap nodes.")
@@ -71,7 +67,7 @@ def main():
             "ip": args.ip,
             "port": args.port,
         }
-        node = ChordNode(bootstrap_node=bootstrap_node)
+        node = ChordNode(bootstrap_node=bootstrap_node, consistency_type="linearizability", replication_factor=3)
         print(f"🚀 Node started at {node.ip}:{node.port}, ID: {node.node_id}")
 
     # Start the CLI and server
