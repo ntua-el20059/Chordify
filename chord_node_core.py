@@ -18,7 +18,6 @@ class ChordNodeCore:
             self.port = 5000
         self.node_id = self.hash_function(f"{self.ip}:{self.port}")
         self.replication_factor = replication_factor
-        self.data_store = {}  # Local DHT storage (key = song name, value = IP of node)
         self.successor = None
         self.predecessor = None
         if bootstrap_node!=None:
