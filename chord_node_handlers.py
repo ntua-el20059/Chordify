@@ -52,10 +52,10 @@ class ChordNodeHandlers(ChordNodeCore):
         }
         self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_port'])  # Send response back to the sender
 
-    def is_between_self_id_and_successor_id(self, hash_value):
+    def hash_value_is_between_self_id_and_successor_id(self, hash_value):
         """
         Check if a given hash value is between the current node's ID and its successor's ID.
-        The hash value could be a key hash or a node ID.
+        The hash value could be a key hash or a node ID (for join/insertion/deletion requests).
         """
         return (self.successor["node_id"] == self.node_id or
             self.node_id < hash_value < self.successor["node_id"] or
@@ -72,7 +72,7 @@ class ChordNodeHandlers(ChordNodeCore):
                 request["consistency_type"] = self.consistency_type
                 request["replication_factor"] = self.replication_factor
 
-            if self.is_between_self_id_and_successor_id(request['sender_id']):
+            if self.hash_value_is_between_self_id_and_successor_id(request['sender_id']):
                 # The new node fits between this node and its successor
                 request["found_predecessor"] = True
                 request["predecessor_ip"] = self.ip
@@ -118,7 +118,8 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_insertion_request(self, request):
         """Handle an insertion request."""
-        if (self.is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0) or (0 < request['times_copied'] < self.replication_factor):
+        if ((self.hash_value_is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0) or
+            (0 < request['times_copied'] < self.replication_factor and request['node_id'] != self.node_id)):
             request['times_copied'] += 1
 
             self.insert_into_mongodb(request['key'], request['key_hash'], request['value'])
@@ -162,7 +163,7 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_query_request_eventual_consistency(self, request):
         """Handle a query request."""
-        if self.is_between_self_id_and_successor_id(request['key_hash']):
+        if self.hash_value_is_between_self_id_and_successor_id(request['key_hash']):
             response = {
                 "type": "query_response",
                 "sender_ip": self.ip,
@@ -177,7 +178,8 @@ class ChordNodeHandlers(ChordNodeCore):
             self.pass_request(request)
 
     def handle_query_request_linearizability(self, request):
-        if (self.is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0) or (0 < request['times_copied'] < self.replication_factor):
+        if ((self.hash_value_is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0)
+            or (0 < request['times_copied'] < self.replication_factor)):
             request['times_copied'] += 1
             if request['times_copied'] == self.replication_factor:
                 response = {
@@ -221,7 +223,7 @@ class ChordNodeHandlers(ChordNodeCore):
         return key_value_list
 
     def handle_deletion_request(self, request):
-        if (self.is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0) or (0 < request['times_copied'] < self.replication_factor):
+        if (self.hash_value_is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0) or (0 < request['times_copied'] < self.replication_factor):
             request['times_copied'] += 1
 
             self.remove_from_mongodb(request['key_hash'])
