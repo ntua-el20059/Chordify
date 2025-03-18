@@ -1,5 +1,0 @@
-Experiment Results
-
-[Insert Experiment] Completed 50 inserts in 0.92 seconds, throughput: 54.54 ops/sec
-[Query Experiment] Completed 50 queries in 0.64 seconds, throughput: 78.67 ops/sec
-[Requests Experiment] 50 requests in 0.46 seconds, throughput: 108.63 requests/sec
