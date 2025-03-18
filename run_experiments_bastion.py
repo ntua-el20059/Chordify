@@ -54,7 +54,6 @@ def run_experiment(base_hostname, consistency, replication):
         command = f"""
         ssh {hostname} <<EOF
         cd Chordify
-        git pull
         nohup python3 run_experiments.py --node_number {node1} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 &
         sleep 1
         nohup python3 run_experiments.py --node_number {node2} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 &
@@ -69,13 +68,13 @@ def run_experiment(base_hostname, consistency, replication):
             sys.exit(1)
 
     for _ in range(3):
-        time.sleep(10)
         for i in range(5):
             ip = IPs[i]
             target_port1 = 6000 + 2*i
             target_port2 = 6000 + 2*i + 1
             trigger_signal(ip, target_port1)
             trigger_signal(ip, target_port2)
+            time.sleep(2)
     
     time.sleep(10)
     for i in range(4,-1,-1):

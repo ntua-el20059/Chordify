@@ -17,4 +17,4 @@ if [ $VM_NUMBER -lt 1 ] || [ $VM_NUMBER -gt 5 ]; then
 fi
 
 echo "Connecting to team_3-vm$VM_NUMBER..."
-ssh team_3-vm$VM_NUMBER
+ssh team_3-vm$VM_NUMBER 
