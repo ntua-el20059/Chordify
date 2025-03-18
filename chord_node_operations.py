@@ -243,9 +243,45 @@ class ChordNodeOperations(ChordNodeHandlers):
                 except socket.timeout:
                     print("⏳ Timeout: No response received within the timeout period.")
                     break
-
         return []
     
+
+    def get_all_keys_from_node(self, node):
+        """Query all keys in the specified Chord node."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
+            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
+            temp_port = temp_socket.getsockname()[1]
+            temp_socket.listen(1)
+            temp_socket.settimeout(20)
+
+            print("🔍 Querying for every key in the Chord network.")
+            request = {
+                "type": "query_all",
+                "sender_ip": self.ip,
+                "sender_port": self.port,
+                "sender_temp_port": temp_port,
+                "sender_id": self.node_id,
+            }
+
+            target_ip, target_port = node["ip"], node["port"]
+            self.pass_request(request, target_ip, target_port)
+            print("🕒 Waiting for response...")
+            try:
+                conn, _ = temp_socket.accept()
+                data = conn.recv(1024).decode()
+                conn.close()
+                if data:
+                    response = json.loads(data)
+                    key_value_list = response.get("key_value_list", [])
+                    self.collection.insert_many(key_value_list)
+                else:
+                    print("⚠️ No data received from the node.")
+            except socket.timeout:
+                print("⏳ Timeout: No response received within the timeout period.")
+        return []
+    
+
     def overlay(self):
         """Display the overlay of the Chord network."""
         # Start with the local node's characteristics.
@@ -301,8 +337,7 @@ class ChordNodeOperations(ChordNodeHandlers):
 
                 except socket.timeout:
                     print("⏳ Timeout: No response received within the timeout period.")
-                    return 
-
+                    return
         return node_list
         
 
@@ -341,6 +376,20 @@ class ChordNodeOperations(ChordNodeHandlers):
             except socket.timeout:
                     print("⏳ Timeout: No response received within the timeout period.")
 
+    def handle_replication_upon_arrival(self):
+        """Handle replication of key-value pairs upon arrival."""
+        network_overlay = self.overlay()
+        if len(network_overlay) <= self.replication_factor:
+            for node in network_overlay:
+                self.get_all_keys_from_node(node)
+        else:
+
+            pass
+            #copy all key-value pairs
+
+    def handle_replication_upon_departure(self):
+        """Handle replication of key-value pairs upon departure."""
+        pass
 
     def stop(self):
         """Stop the server and clean up resources."""

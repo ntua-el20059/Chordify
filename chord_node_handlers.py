@@ -142,6 +142,19 @@ class ChordNodeHandlers(ChordNodeCore):
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
             if request['times_copied'] < self.replication_factor:
                 self.pass_request(request)
+
+        elif (0 < request['times_copied'] < self.replication_factor and request['node_id'] == self.node_id):
+            #handles the case where the replication factor is less than the node count
+            if self.consistency_type == "linearizability":
+                response = {
+                    "type": "insertion_response",
+                    "key": request['key'],
+                    "key_hash": request['key_hash'],
+                    "inserted": True
+                }
+                self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
+            #elif self.consistency_type == "eventual": pass
+            return
         else:
             # Forward the request to the successor
             self.pass_request(request)
@@ -181,7 +194,8 @@ class ChordNodeHandlers(ChordNodeCore):
         if ((self.hash_value_is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0)
             or (0 < request['times_copied'] < self.replication_factor)):
             request['times_copied'] += 1
-            if request['times_copied'] == self.replication_factor:
+            if (request['times_copied'] == self.replication_factor #reached the last node in the chain
+                or self.node_id == request['node_id']): #or if the node count is less than the replication factor (=> node that sent the request ends up receiving it)
                 response = {
                     "type": "query_response",
                     "sender_ip": self.ip,
@@ -223,7 +237,8 @@ class ChordNodeHandlers(ChordNodeCore):
         return key_value_list
 
     def handle_deletion_request(self, request):
-        if (self.hash_value_is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0) or (0 < request['times_copied'] < self.replication_factor):
+        if ((self.hash_value_is_between_self_id_and_successor_id(request['key_hash']) and request["times_copied"] == 0)
+            or (0 < request['times_copied'] < self.replication_factor and self.node_id!=request['node_id'])):
             request['times_copied'] += 1
 
             self.remove_from_mongodb(request['key_hash'])
@@ -233,7 +248,7 @@ class ChordNodeHandlers(ChordNodeCore):
                     "type": "deletion_response",
                     "key": request['key'],
                     "key_hash": request['key_hash'],
-                    "inserted": True
+                    "deleted": True
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
             if request['times_copied'] == 1 and self.consistency_type == "eventual":
@@ -241,11 +256,23 @@ class ChordNodeHandlers(ChordNodeCore):
                     "type": "deletion_response",
                     "key": request['key'],
                     "key_hash": request['key_hash'],
-                    "inserted": True
+                    "deleted": True
                 }
                 self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
             if request['times_copied'] < self.replication_factor:
                 self.pass_request(request)
+        elif (0 < request['times_copied'] < self.replication_factor and request['node_id'] == self.node_id):
+            #handles the case where the replication factor is less than the node count
+            if self.consistency_type == "linearizability":
+                response = {
+                    "type": "deletion_response",
+                    "key": request['key'],
+                    "key_hash": request['key_hash'],
+                    "deleted": True
+                }
+                self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
+            #elif self.consistency_type == "eventual": pass
+            return
         else:
             # Forward the request to the successor
             self.pass_request(request)
