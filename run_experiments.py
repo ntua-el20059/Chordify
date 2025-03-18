@@ -65,7 +65,6 @@ def run_requests(file_path, node, output_file):
 def wait_for_signal(listening_socket, node):
     """Wait for a 'go' signal from an external coordinator with a timeout."""
     print(f"Waiting for signal on port {listening_socket.getsockname()[1]}...")
-    listening_socket.settimeout(30)  # Set a 10-second timeout
     try:
         connection, _ = listening_socket.accept()
         data = connection.recv(1024).decode().strip()
