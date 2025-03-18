@@ -6,7 +6,7 @@ import json
 
 
 class ChordNodeCore:
-    def __init__(self, bootstrap_node=None, replication_factor=1, consistency_type="linearizability", debugging=True):
+    def __init__(self, bootstrap_node=None, replication_factor=3, consistency_type="linearizability", debugging=True):
         try:
             self.ip = socket.gethostbyname(socket.gethostname())
         except Exception as e:
