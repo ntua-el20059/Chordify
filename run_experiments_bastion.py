@@ -107,8 +107,8 @@ def main():
             print(f"Failed to git pull on {hostname}. Exiting...")
             sys.exit(1)
 
-    consistency_types = ["eventual"]
-    replication_factors = [3]
+    consistency_types = ["linearizability", "eventual"]
+    replication_factors = [1, 3, 5]
     for consistency in consistency_types:
         for replication in replication_factors:
             run_experiment(args.base_hostname, consistency, replication)
