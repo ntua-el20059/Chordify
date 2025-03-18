@@ -107,8 +107,8 @@ def main():
             print(f"Failed to git pull on {hostname}. Exiting...")
             sys.exit(1)
 
-    consistency = "linearizability"
-    replication = 5
+    consistency = "eventual"
+    replication = 1
     run_experiment(args.base_hostname, consistency, replication)
    
 
