@@ -93,6 +93,7 @@ def main():
     parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team3-vm)")
     args = parser.parse_args()
 
+
     for i in range(5):
         hostname = f"{args.base_hostname}{i+1}"
         command = f"""
@@ -110,6 +111,7 @@ def main():
 
     consistency = "eventual"
     replication = 5
+    print(f"Running configuration: consistency={consistency} k={replication}")
     run_experiment(args.base_hostname, consistency, replication)
    
 

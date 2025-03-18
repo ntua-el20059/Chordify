@@ -60,7 +60,7 @@ def run_requests(file_path, node, output_file):
         duration = end_time - start_time
         throughput = len(lines) / duration if duration > 0 else 0
     with open(output_file, "a") as f:
-        f.write(f"[Requests Experiment] {len(lines)} requests in {duration:.2f} seconds, throughput: {throughput:.2f} requests/sec\n")
+        f.write(f"[Requests Experiment] {len(lines)} requests in {duration:.2f} seconds, throughput: {throughput:.2f} ops/sec\n")
 
 def wait_for_signal(listening_socket, node):
     """Wait for a 'go' signal from an external coordinator with a timeout."""
