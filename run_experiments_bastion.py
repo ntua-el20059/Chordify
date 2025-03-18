@@ -74,7 +74,7 @@ def run_experiment(base_hostname, consistency, replication):
             target_port2 = 6000 + 2*i + 1
             trigger_signal(ip, target_port1)
             trigger_signal(ip, target_port2)
-            time.sleep(2)
+        time.sleep(3)
     
     time.sleep(10)
     for i in range(4,-1,-1):
@@ -82,9 +82,9 @@ def run_experiment(base_hostname, consistency, replication):
             target_port1 = 6000 + 2*i+1
             target_port2 = 6000 + 2*i
             trigger_signal(ip, target_port1)
-            time.sleep(0.25)
+            time.sleep(0.5)
             trigger_signal(ip, target_port2)
-            time.sleep(0.25)
+            time.sleep(0.5)
 
 
 def main():
