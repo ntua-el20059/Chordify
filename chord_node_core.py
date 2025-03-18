@@ -39,7 +39,7 @@ class ChordNodeCore:
             self.join()
         self.mongoclient = MongoClient("mongodb://localhost:27017/")  
         self.db = self.mongoclient["database"]  
-        self.collection = self.db["collection"]
+        self.collection = self.db[f"collection_{self.node_id//2**155}"]
 
         #server_thread = threading.Thread(target=self.start_server, args=())
         #server_thread.daemon = True

@@ -155,7 +155,6 @@ class ChordNodeOperations(ChordNodeHandlers):
         """Query for a key in the Chord network."""
 
         if key == "*":
-            print("🔍 Querying for every key.")
             print(self.query_all())
             return
         
@@ -195,6 +194,7 @@ class ChordNodeOperations(ChordNodeHandlers):
 
     def query_all(self):
         """Query all keys in the Chord network."""
+
         # Start with local key–value pairs.
 
         key_value_list = []
@@ -203,8 +203,10 @@ class ChordNodeOperations(ChordNodeHandlers):
             temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
+
             temp_socket.listen(1)
             temp_socket.settimeout(20)
+
 
             print("🔍 Querying for every key in the Chord network.")
             request = {
@@ -215,11 +217,14 @@ class ChordNodeOperations(ChordNodeHandlers):
                 "sender_id": self.node_id,
             }
 
+
             target_ip, target_port = self.ip, self.port
 
             while True:
+
                 self.pass_request(request, target_ip, target_port)
                 print("🕒 Waiting for response...")
+
                 try:
                     conn, _ = temp_socket.accept()
                     data = conn.recv(1024).decode()
@@ -227,6 +232,7 @@ class ChordNodeOperations(ChordNodeHandlers):
 
                     if data:
                         response = json.loads(data)
+                        
                         key_value_list += response.get("key_value_list", [])
 
                         if response.get("node_id") == self.predecessor["node_id"]:
@@ -241,8 +247,10 @@ class ChordNodeOperations(ChordNodeHandlers):
                         print("⚠️ No data received from the node.")
                         break
                 except socket.timeout:
+                        
                     print("⏳ Timeout: No response received within the timeout period.")
                     break
+
         return []
     
 
