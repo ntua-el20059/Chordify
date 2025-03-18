@@ -42,6 +42,10 @@ class ChordNodeCore:
         self.db = self.mongoclient["database"]  
         self.collection = self.db["collection"]
 
+        #server_thread = threading.Thread(target=self.start_server, args=())
+        #server_thread.daemon = True
+        #server_thread.start()
+
     def get_free_port(self):
         """Assign a free port."""
         for i in range(5000,6000):
