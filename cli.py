@@ -53,7 +53,7 @@ def main():
     parser.add_argument("--ip", help="Bootstrap node IP (required if not bootstrap)")
     parser.add_argument("--port", type=int, default=5000, help="Port to use (default: 5000)")
     #parser add argument for replication factor
-    parser.add_argument("-rf", help="Bootstrap node IP (required if not bootstrap)")
+    parser.add_argument("-rf",type = int, help="Bootstrap node IP (required if not bootstrap)")
     #parser add argument for consistency type
     parser.add_argument("-c", help="Bootstrap node IP (required if not bootstrap)")
     args = parser.parse_args()
