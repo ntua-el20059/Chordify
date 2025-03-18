@@ -108,7 +108,7 @@ def main():
             sys.exit(1)
 
     consistency = "eventual"
-    replication = 5
+    replication = 3
     run_experiment(args.base_hostname, consistency, replication)
    
 
