@@ -233,7 +233,7 @@ class ChordNodeHandlers(ChordNodeCore):
         query = self.collection.find({})
         key_value_list = []
         for key_value in query:
-            key_value_list.append({"key": key_value["key"], "key_hash": key_value["key_hash"], "value": key_value["value"]})
+            key_value_list.append(key_value)
         return key_value_list
 
     def handle_deletion_request(self, request):
