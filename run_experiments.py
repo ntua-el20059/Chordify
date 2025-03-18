@@ -133,7 +133,7 @@ def main():
     # Start the node's server in a background thread
     server_thread = threading.Thread(target=node.start_server, daemon=True)
     server_thread.start()
-    time.sleep(0.1)  # Allow the server time to initialize
+    time.sleep(0.5)  # Allow the server time to initialize
 
     # Clear or create the output file at the start
     with open(output_file, "w") as f:

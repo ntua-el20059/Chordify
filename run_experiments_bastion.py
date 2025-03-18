@@ -67,6 +67,8 @@ def run_experiment(base_hostname, consistency, replication):
             print(f"Failed to complete tasks on {hostname}. Exiting...")
             sys.exit(1)
 
+    time.sleep(1)
+
     for _ in range(3):
         for i in range(5):
             ip = IPs[i]
