@@ -50,14 +50,14 @@ def main():
     """Parse command-line arguments and start the Chord node."""
     parser = argparse.ArgumentParser(description="Chord Node Implementation")
     parser.add_argument("--bootstrap", action="store_true", help="Start as bootstrap node")
-    parser.add_argument("-ip", help="Bootstrap node IP (required if not bootstrap)")
-    parser.add_argument("-port", type=int, default=5000, help="Port to use (default: 5000)")
+    parser.add_argument("--ip", help="Bootstrap node IP (required if not bootstrap)")
+    parser.add_argument("--port", type=int, default=5000, help="Port to use (default: 5000)")
     args = parser.parse_args()
 
     if args.bootstrap:
         # Start as bootstrap node
         print("🚀 Starting as bootstrap node...")
-        node = ChordNode(port=args.port, bootstrap_node=None)
+        node = ChordNode(bootstrap_node=None)
     else:
         if not args.ip:
             print("❌ Error: Bootstrap node IP is required for non-bootstrap nodes.")

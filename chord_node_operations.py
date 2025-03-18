@@ -155,7 +155,7 @@ class ChordNodeOperations(ChordNodeHandlers):
         """Query for a key in the Chord network."""
 
         if key == "*":
-            print("NA SYMPLHRWSW KWDIKA STO QUERY IF KEY == *")
+            print("🔍 Querying for every key.")
             print(self.query_all())
             return
         
@@ -195,16 +195,18 @@ class ChordNodeOperations(ChordNodeHandlers):
 
     def query_all(self):
         """Query all keys in the Chord network."""
-        key_value_list=self.query_all_mongodb()
+        # Start with local key–value pairs.
+
+        key_value_list = []
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
             temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
-            temp_socket.listen()
+            temp_socket.listen(1)
             temp_socket.settimeout(20)
 
-            print(f"🔍 Querying for every key in the Chord network.")
+            print("🔍 Querying for every key in the Chord network.")
             request = {
                 "type": "query_all",
                 "sender_ip": self.ip,
@@ -212,41 +214,51 @@ class ChordNodeOperations(ChordNodeHandlers):
                 "sender_temp_port": temp_port,
                 "sender_id": self.node_id,
             }
-            target_ip,target_port = self.successor["ip"], self.successor["port"]
+
+            target_ip, target_port = self.ip, self.port
+
             while True:
-                self.pass_request(request,target_ip,target_port)
+                self.pass_request(request, target_ip, target_port)
                 print("🕒 Waiting for response...")
-                conn, _ = temp_socket.accept()
-                data = conn.recv(1024).decode()
-                try:    
+                try:
+                    conn, _ = temp_socket.accept()
+                    data = conn.recv(1024).decode()
+                    conn.close()
+
                     if data:
                         response = json.loads(data)
-                        if response:
-                            next_node=response["next"]
-                            if response["node_id"]==self.node_id:
-                                conn.close()
-                                return key_value_list
-                            target_ip, target_port = next_node["ip"], next_node["port"]
-                            key_value_list+=response["key_value_list"]
-                    conn.close()
-                    return []
-                except socket.timeout:
-                        print("⏳ Timeout: No response received within the timeout period.")
-                        conn.close()
-                        return []
+                        key_value_list += response.get("key_value_list", [])
 
+                        if response.get("node_id") == self.predecessor["node_id"]:
+                            if self.debugging:
+                                print("✅ Completed full cycle of the network.")
+                            key_value_list = sorted(list(set(key_value_list)), key=lambda x: x["key"])
+                            return key_value_list
+                        else:
+                            next_node = response.get("next")
+                            target_ip, target_port = next_node.get("ip"), next_node.get("port")
+                    else:
+                        print("⚠️ No data received from the node.")
+                        break
+                except socket.timeout:
+                    print("⏳ Timeout: No response received within the timeout period.")
+                    break
+
+        return []
+    
     def overlay(self):
         """Display the overlay of the Chord network."""
-        node_list=[{"ip": self.ip, "port": self.port, "node_id": self.node_id}]
+        # Start with the local node's characteristics.
+        node_list = []
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
             temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
             temp_port = temp_socket.getsockname()[1]
-            temp_socket.listen()
+            temp_socket.listen(1)
             temp_socket.settimeout(10)
 
-            print(f"FINDING THE NETWORK OVERLAY")
+            print("🔍 Fetching the overlay of the Chord network.")
             request = {
                 "type": "overlay",
                 "sender_ip": self.ip,
@@ -254,28 +266,44 @@ class ChordNodeOperations(ChordNodeHandlers):
                 "sender_temp_port": temp_port,
                 "sender_id": self.node_id,
             }
-            target_ip,target_port = self.successor["ip"], self.successor["port"]
+            target_ip, target_port = self.ip, self.port
+
             while True:
-                self.pass_request(request,target_ip,target_port)
-                try:    
-                    print("🕒 Waiting for response...")
+                self.pass_request(request, target_ip, target_port)
+                print("🕒 Waiting for response...")
+                try:
                     conn, _ = temp_socket.accept()
                     data = conn.recv(1024).decode()
-                    if data:
-                        response = json.loads(data)
-                        next_node=response["next"]
-                        if response["node_id"]==self.node_id:
-                            conn.close()
-                            return node_list
-                        target_ip, target_port = next_node["ip"], next_node["port"]
-                        node_list.append(response["node_characteristics"])
-                    print("Error: No data received")
                     conn.close()
-                    return node_list
+
+                    if not data:
+                        print("⚠️ No data received from node.")
+                        break
+
+                    response = json.loads(data)
+                    # Append node characteristics if not already added.
+                    sender = response.get("sender")
+                    if sender:
+                        node_list.append(sender)
+
+                    # Check if we have completed a full cycle.
+                    if sender.get("node_id") == self.predecessor["node_id"]:
+                        print("✅ Completed full cycle of overlay.")
+                        return node_list
+
+                    # Update target with the next node's info.
+                    next_node = response.get("next")
+                    if next_node:
+                        target_ip, target_port = next_node.get("ip"), next_node.get("port")
+                    else:
+                        print("⚠️ Next node info missing.")
+                        return node_list
+
                 except socket.timeout:
-                        print("⏳ Timeout: No response received within the timeout period.")
-                        conn.close()
-                        return []
+                    print("⏳ Timeout: No response received within the timeout period.")
+                    return 
+
+        return node_list
         
 
     def delete(self, key):

@@ -36,7 +36,7 @@ class ChordNodeHandlers(ChordNodeCore):
                         (f"🟡 Node {request['sender_ip']}:{request['sender_port']} is departing.")
 
         except Exception as e:
-            print(f"❌ Error handling request: {e}")
+            print(f"❌ (In \"handle_request_method\") Error handling request: {e}")
         finally:
             conn.close()
 
@@ -54,7 +54,8 @@ class ChordNodeHandlers(ChordNodeCore):
         
     def handle_join_request(self, request):
         """Handle a join request."""
-        print(f"🟡 Node {request['sender_ip']}:{request['sender_port']} is joining the network.")
+        if self.debugging:
+            print(f"🟡 Node {request['sender_ip']}:{request['sender_port']} is joining the network.")
 
         if not request.get("found_predecessor", False):
             # If predecessor is not yet found
@@ -101,15 +102,18 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_departure_request(self, request):
         """Handle a departure request."""
-        print(f"👋 Node {request['sender_id']} is departing. Updating successor and predecessor.")
+        if self.debugging:
+            print(f"👋 Node {request['sender_id']} is departing. Updating successor and predecessor.")
         if self.successor["node_id"] == request["sender_id"]:
             self.successor = {"ip": request["successor_ip"], "port": request["successor_port"], "node_id": request["successor_id"]}
             #announce the departure to the successor
             #say that the successor of the node departed
-            print(f"🟢 Successor updated to {self.successor}")
+            if self.debugging:
+                print(f"🟢 Successor updated to {self.successor}")
         if self.predecessor["node_id"] == request["sender_id"]:
             self.predecessor = {"ip": request["predecessor_ip"], "port": request["predecessor_port"], "node_id": request["predecessor_id"]}
-            print(f"🟢 Predecessor updated to {self.predecessor}")
+            if self.debugging:
+                print(f"🟢 Predecessor updated to {self.predecessor}")
 
     def handle_insertion_request(self, request):
         """Handle an insertion request."""
@@ -214,7 +218,6 @@ class ChordNodeHandlers(ChordNodeCore):
             return None
 
     def handle_query_all_request(self, request):
-        print("ftanoume sthn handle query all request")
         response = {
             "type": "query_all_response",
             "next": self.successor,
@@ -226,8 +229,11 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def query_all_mongodb(self):
         """Returns a list of all key value pairs inside the local mongodb collection."""
-        print("EDW PREPEI NA TO VALOUME NA KANEI FIND ALL KAI META NA TA PAIRNEI ENA ENA KAI NA TA VAZEI SE MIA LISTA KAI NA THN KANEI RETURN")
-        return [{"key": "fanh", "value": "vohtheia"}]
+        query = self.collection.find({})
+        key_value_list = []
+        for key_value in query:
+            key_value_list.append(key_value)
+        return key_value_list
 
     def handle_deletion_request(self, request):
         if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
@@ -271,7 +277,7 @@ class ChordNodeHandlers(ChordNodeCore):
         """Handle an overlay request."""
         response = {
             "type": "overlay_response",
-            "node_characteristics": {"ip":self.ip,"port":self.port,"node_id":self.node_id},
+            "sender": {"ip":self.ip,"port":self.port,"node_id":self.node_id},
             "next": self.successor
         }
         self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
