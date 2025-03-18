@@ -230,6 +230,7 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def query_all_mongodb(self):
         """Returns a list of all key-value pairs inside the local MongoDB collection."""
+        return [{"key": 123, "value": 456},{"key": 123, "value": 456},{"key": 123, "value": 456},{"key": 123, "value": 456}]
         query = self.collection.find({})
         key_value_list = []
         for key_value in query:

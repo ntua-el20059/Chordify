@@ -155,6 +155,7 @@ class ChordNodeOperations(ChordNodeHandlers):
         """Query for a key in the Chord network."""
 
         if key == "*":
+            print("🔍 Querying for every key.")
             print(self.query_all())
             return
         
@@ -194,64 +195,11 @@ class ChordNodeOperations(ChordNodeHandlers):
 
     def query_all(self):
         """Query all keys in the Chord network."""
-
-        # Start with local key–value pairs.
-
+        network_overlay = self.overlay()
         key_value_list = []
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
-            temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
-            temp_port = temp_socket.getsockname()[1]
-
-            temp_socket.listen(1)
-            temp_socket.settimeout(20)
-
-
-            print("🔍 Querying for every key in the Chord network.")
-            request = {
-                "type": "query_all",
-                "sender_ip": self.ip,
-                "sender_port": self.port,
-                "sender_temp_port": temp_port,
-                "sender_id": self.node_id,
-            }
-
-
-            target_ip, target_port = self.ip, self.port
-
-            while True:
-
-                self.pass_request(request, target_ip, target_port)
-                print("🕒 Waiting for response...")
-
-                try:
-                    conn, _ = temp_socket.accept()
-                    data = conn.recv(1024).decode()
-                    conn.close()
-
-                    if data:
-                        response = json.loads(data)
-                        
-                        key_value_list += response.get("key_value_list", [])
-
-                        if response.get("node_id") == self.predecessor["node_id"]:
-                            if self.debugging:
-                                print("✅ Completed full cycle of the network.")
-                            key_value_list = sorted(list(set(key_value_list)), key=lambda x: x["key"])
-                            return key_value_list
-                        else:
-                            next_node = response.get("next")
-                            target_ip, target_port = next_node.get("ip"), next_node.get("port")
-                    else:
-                        print("⚠️ No data received from the node.")
-                        break
-                except socket.timeout:
-                        
-                    print("⏳ Timeout: No response received within the timeout period.")
-                    break
-
-        return []
+        for node in network_overlay:
+            key_value_list+=self.get_all_keys_from_node(node)
+        return self.collection.find({},{"_id":0}).sort("key")
     
 
     def get_all_keys_from_node(self, node):
@@ -281,8 +229,8 @@ class ChordNodeOperations(ChordNodeHandlers):
                 conn.close()
                 if data:
                     response = json.loads(data)
-                    key_value_list = response.get("key_value_list", [])
-                    self.collection.insert_many(key_value_list)
+                    key_value_list = response["key_value_list"]
+                    #self.collection.insert_many(key_value_list)
                 else:
                     print("⚠️ No data received from the node.")
             except socket.timeout:
