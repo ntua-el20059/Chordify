@@ -53,13 +53,12 @@ def run_experiment(base_hostname, consistency, replication):
 
         command = f"""
         ssh {hostname} <<EOF
-        cd Chordify
-        git pull
-        nohup python3 run_experiments.py --node_number {node1} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}_{consistency}_{replication}.log 2>&1 &
-        sleep 0.25
-        nohup python3 run_experiments.py --node_number {node2} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}_{consistency}_{replication}.log 2>&1 &
-        sleep 0.25
-        exit
+            cd Chordify
+            nohup python3 run_experiments.py --node_number {node1} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}_{consistency}_{replication}.log 2>&1 &
+            sleep 0.25
+            nohup python3 run_experiments.py --node_number {node2} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}_{consistency}_{replication}.log 2>&1 &
+            sleep 0.25
+            exit
         EOF
         """
 
@@ -92,6 +91,20 @@ def main():
     parser = argparse.ArgumentParser(description="SSH Experiment Runner for Chord Nodes")
     parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team3-vm)")
     args = parser.parse_args()
+
+    for i in range(5):
+        hostname = f"{args.base_hostname}{i+1}"
+        command = f"""
+        ssh {hostname} <<EOF
+            cd Chordify
+            git pull origin main
+            exit
+        EOF
+        """
+        success = execute_command(hostname, command)
+        if not success:
+            print(f"Failed to git pull on {hostname}. Exiting...")
+            sys.exit(1)
 
     consistency_types = ["linearizability", "eventual"]
     replication_factors = [1, 3, 5]
