@@ -99,6 +99,7 @@ def main():
         ssh {hostname} <<EOF
             cd Chordify
             git pull origin main
+            rm -r node0*
             exit
         EOF
         """
