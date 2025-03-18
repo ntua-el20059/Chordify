@@ -40,16 +40,12 @@ def trigger_signal(host, port, message="go"):
         print(f"Error triggering signal: {e}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="SSH Experiment Runner for Chord Nodes")
-    parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team3-vm)")
-    args = parser.parse_args()
-
-    # Read IPs from file
+def run_experiment(base_hostname, consistency, replication):
+     # Read IPs from file
     IPs = read_ips("ips.txt")
 
     for i in range(5):
-        hostname = f"{args.base_hostname}{i+1}"
+        hostname = f"{base_hostname}{i+1}"
         node1 = 2 * i
         node2 = 2 * i + 1
         signal_port1 = 6000 + node1
@@ -59,9 +55,9 @@ def main():
         ssh {hostname} <<EOF
         cd Chordify
         git pull
-        nohup python3 run_experiments.py --node_number {node1} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 &
+        nohup python3 run_experiments.py --node_number {node1} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port1} > node0{node1}.log 2>&1 &
         sleep 1
-        nohup python3 run_experiments.py --node_number {node2} --consistency linearizability --replication 1 --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 &
+        nohup python3 run_experiments.py --node_number {node2} --consistency {consistency} --replication {replication} --bootstrap_ip 10.0.10.67 --bootstrap_port 5000 --signal_port {signal_port2} > node0{node2}.log 2>&1 &
         sleep 1
         exit
         EOF
@@ -81,15 +77,26 @@ def main():
             trigger_signal(ip, target_port1)
             trigger_signal(ip, target_port2)
     
-    time.sleep(9)
+    time.sleep(10)
     for i in range(4,-1,-1):
             ip = IPs[i]
             target_port1 = 6000 + 2*i+1
             target_port2 = 6000 + 2*i
-            time.sleep(1)
             trigger_signal(ip, target_port1)
             time.sleep(1)
             trigger_signal(ip, target_port2)
+            time.sleep(1)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="SSH Experiment Runner for Chord Nodes")
+    parser.add_argument('--base_hostname', type=str, default="team_3-vm", help="Base hostname for VMs (e.g., team3-vm)")
+    args = parser.parse_args()
+
+    consistency_types = ["linearizability", "eventual"]
+    replication_factors = [1, 3, 5]
+    run_experiment(args.base_hostname, consistency_types[0], replication_factors[0])
+   
 
 if __name__ == "__main__":
     main()
