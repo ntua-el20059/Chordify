@@ -156,7 +156,9 @@ class ChordNodeOperations(ChordNodeHandlers):
 
         if key == "*":
             print("🔍 Querying for every key.")
-            print(self.query_all())
+            #print(self.query_all())
+            for entry in self.query_all():
+                print(f"{entry}\n")
             return
         
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
