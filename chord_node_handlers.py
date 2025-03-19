@@ -218,22 +218,26 @@ class ChordNodeHandlers(ChordNodeCore):
             return None
 
     def handle_query_all_request(self, request):
+        # Retrieve all key-value pairs from the local MongoDB
+        key_value_list = self.query_all_mongodb()
+        # Add source node information to each key-value pair
+        for kv in key_value_list:
+            kv["source_node"] = {"ip": self.ip, "port": self.port, "node_id": self.node_id}
         response = {
             "type": "query_all_response",
             "next": self.successor,
             "node_id": self.node_id,
-            "key_value_list" : self.query_all_mongodb()
+            "key_value_list": key_value_list
         }
         self.pass_request(response, target_ip=request['sender_ip'], target_port=request['sender_temp_port'])
+
     
 
     def query_all_mongodb(self):
         """Returns a list of all key value pairs inside the local mongodb collection."""
-        query = self.collection.find({})
-        key_value_list = []
-        for key_value in query:
-            key_value_list.append(key_value)
-        return key_value_list
+        query = self.collection.find({}, {"_id": 0})
+        return list(query)
+
 
     def handle_deletion_request(self, request):
         if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
