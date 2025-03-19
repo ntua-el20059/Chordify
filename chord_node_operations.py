@@ -194,16 +194,19 @@ class ChordNodeOperations(ChordNodeHandlers):
                     print("⏳ Timeout: No response received within the timeout period.")
 
     def query_all(self):
-        """Query all keys in the Chord network."""
+        """Query all keys in the Chord network without modifying any node's database."""
         network_overlay = self.overlay()
-        key_value_list = []
+        aggregated_keys = []
         for node in network_overlay:
-            key_value_list+=self.get_all_keys_from_node(node)
-        return self.collection.find({},{"_id":0}).sort("key")
+            keys = self.get_all_keys_from_node(node)
+            aggregated_keys.extend(keys)
+        return aggregated_keys
+
+
     
 
     def get_all_keys_from_node(self, node):
-        """Query all keys in the specified Chord node."""
+        """Query all keys in the specified Chord node and return them without inserting."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
             temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
@@ -230,12 +233,13 @@ class ChordNodeOperations(ChordNodeHandlers):
                 if data:
                     response = json.loads(data)
                     key_value_list = response["key_value_list"]
-                    #self.collection.insert_many(key_value_list)
+                    return key_value_list  # Return without inserting into MongoDB
                 else:
                     print("⚠️ No data received from the node.")
             except socket.timeout:
                 print("⏳ Timeout: No response received within the timeout period.")
         return []
+
     
 
     def overlay(self):
