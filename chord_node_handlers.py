@@ -117,6 +117,7 @@ class ChordNodeHandlers(ChordNodeCore):
 
     def handle_insertion_request(self, request):
         """Handle an insertion request."""
+        request['key_hash'] = int(request['key_hash'])
         if ((self.successor["node_id"] == self.node_id or  # Bootstrap node case
         self.node_id < request['key_hash'] < self.successor["node_id"] or  # Normal case
         (self.successor["node_id"] < self.node_id and  # Wrap-around case
