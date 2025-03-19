@@ -92,39 +92,7 @@ class ChordNodeOperations(ChordNodeHandlers):
 
     def depart(self):
         """Depart from the Chord network gracefully."""
-        if self.successor["node_id"] != self.node_id:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp_socket:
-                temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                temp_socket.bind(("0.0.0.0", 0))  # Bind to a free port
-                temp_port = temp_socket.getsockname()[1]
-                temp_socket.listen(1)
-                temp_socket.settimeout(10)
-                print(f" Node {self.node_id} is departing. Sending all keys to successor.")
-                for key in self.collection.find():
-                    key_transmit_request = {
-                        "type": "insertion",
-                        "key": key["key"],
-                        "key_hash": int(key["key_hash"]),
-                        "value": key["value"],
-                        "sender_ip": self.ip,
-                        "sender_port": self.port,
-                        "sender_temp_port": self.port,
-                        "sender_id": self.node_id,
-                        "times_copied": 0
-                    }
-                    self.pass_request(key_transmit_request)
-                    print("🕒 Waiting for response...")
-                    conn, _ = temp_socket.accept()
-                    data = conn.recv(1024).decode()
-                    try:    
-                        if data:
-                            response = json.loads(data)
-                            if response:
-                                print(f"📨 Node departing")
-                        conn.close()
-                    except socket.timeout:
-                        print("⏳ Timeout: No response received within the timeout period.")    
-                    
+        if self.successor["node_id"] != self.node_id: 
             # Notify the successor to update its predecessor
             request = {
                 "type": "departure",
