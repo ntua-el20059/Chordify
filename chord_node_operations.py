@@ -98,7 +98,7 @@ class ChordNodeOperations(ChordNodeHandlers):
                 key_transmit_request = {
                     "type": "insertion",
                     "key": key["key"],
-                    "key_hash": key["key_hash"],
+                    "key_hash": int(key["key_hash"]),
                     "value": key["value"],
                     "sender_ip": self.ip,
                     "sender_port": self.port,
