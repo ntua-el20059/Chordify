@@ -93,6 +93,20 @@ class ChordNodeOperations(ChordNodeHandlers):
     def depart(self):
         """Depart from the Chord network gracefully."""
         if self.successor["node_id"] != self.node_id:
+            print(f" Node {self.node_id} is departing. Sending all keys to successor.")
+            for key in self.collection.find():
+                key_transmit_request = {
+                    "type": "insertion",
+                    "key": key["key"],
+                    "key_hash": key["key_hash"],
+                    "value": key["value"],
+                    "sender_ip": self.ip,
+                    "sender_port": self.port,
+                    "sender_temp_port": self.port,
+                    "sender_id": self.node_id,
+                    "times_copied": 0
+                }
+                self.pass_request(key_transmit_request)
             # Notify the successor to update its predecessor
             request = {
                 "type": "departure",
