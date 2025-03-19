@@ -122,9 +122,9 @@ class ChordNodeOperations(ChordNodeHandlers):
                             if response:
                                 print(f"📨 Node departing")
                         conn.close()
+                    except socket.timeout:
+                        print("⏳ Timeout: No response received within the timeout period.")    
                     
-
-            
             # Notify the successor to update its predecessor
             request = {
                 "type": "departure",
